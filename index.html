@@ -654,6 +654,7 @@
             const tipsTitle = document.getElementById('tipsTitle');
             const tipsSub = document.getElementById('tipsSub');
             const tipsList = document.getElementById('tipsList');
+            const hist = getActiveHistory();
 
             if (currentVehicle === 'Voyage') {
                 banner.className = "bg-gradient-to-r from-red-950/80 to-slate-900 border-l-4 border-red-500 p-4 rounded-xl border border-red-900/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all";
@@ -689,21 +690,31 @@
                     </li>
                 `;
             } else {
-                // Crosser
+                // Crosser dynamic check
+                const lastFreio = getComponentLatest(hist, ['pastilha', 'patim', 'freio']) || { km: 53600, date: '2024-09-16' };
+                const kmDesdeFreio = currentKm - lastFreio.km;
+                const lastOleo = getComponentLatest(hist, ['óleo', 'oleo']) || { km: 65530, date: '2025-11-30' };
+                const kmDesdeOleo = currentKm - lastOleo.km;
+
                 banner.className = "bg-gradient-to-r from-amber-950/80 to-slate-900 border-l-4 border-amber-500 p-4 rounded-xl border border-amber-900/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all";
                 banner.innerHTML = `
                     <div class="flex items-start gap-3">
-                        <div class="text-amber-400 text-2xl mt-0.5"><i class="fa-solid fa-motorcycle"></i></div>
+                        <div class="text-amber-400 text-2xl mt-0.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div>
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Diretrizes da Yamaha Crosser 150</h3>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Manutenção Pendente: Freios e Nível de Óleo</h3>
                             <p class="text-xs text-slate-300 mt-0.5">
-                                Kit de transmissão e esticador trocados recentemente aos 66.250 km! Atenção redobrada ao nível de óleo a cada 1.000 km e inspeção das pastilhas/lonas de freio (última troca aos 53.600 km).
+                                As pastilhas e patim de freio rodaram <b>${kmDesdeFreio.toLocaleString('pt-BR')} km</b> desde a troca aos 53.600 km e requerem inspeção de espessura. A relação foi renovada aos 66.250 km. O óleo atual já rodou <b>${kmDesdeOleo.toLocaleString('pt-BR')} km</b>.
                             </p>
                         </div>
                     </div>
-                    <button onclick="openModalWithService('Troca de Óleo e Filtro de Óleo', 55, 'Motor')" class="whitespace-nowrap text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition shadow">
-                        Registrar Troca de Óleo
-                    </button>
+                    <div class="flex flex-wrap sm:flex-nowrap gap-2 w-full md:w-auto">
+                        <button onclick="openModalWithService('Pastilha e Patim de Freio', 70, 'Freios')" class="whitespace-nowrap text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold px-3 py-2 rounded-lg transition shadow">
+                            Registrar Freios
+                        </button>
+                        <button onclick="openModalWithService('Troca de Óleo e Filtro de Óleo', 55, 'Motor')" class="whitespace-nowrap text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-lg transition shadow">
+                            Registrar Óleo
+                        </button>
+                    </div>
                 `;
 
                 tipsTitle.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400"></i> Segredos de Durabilidade da Yamaha Crosser';
@@ -723,9 +734,7 @@
                     </li>
                 `;
             }
-        }
-
-        function renderHistoryTable() {
+        }function renderHistoryTable() {
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '';
             const hist = getActiveHistory();
