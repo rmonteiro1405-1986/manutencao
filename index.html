@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoGestão - VW Voyage 1.6 EA111</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0F172A',
+                        darkcard: '#1E293B',
+                        darkborder: '#334155',
+                        accent: '#2563EB',
+                        accenthover: '#1D4ED8'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen pb-12">
+
+    <!-- Top Header -->
+    <header class="bg-darkcard border-b border-darkborder sticky top-0 z-50 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-car"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        VW Voyage 1.6 Highline <span class="text-xs bg-slate-700 text-blue-400 px-2 py-0.5 rounded font-mono">EA111</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Monitor de Manutenção Preventiva Inteligente</p>
+                </div>
+            </div>
+
+            <!-- Quick Action Badges -->
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button onclick="requestNotificationPermission()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-bell text-amber-400"></i> Notificações
+                </button>
+                <button onclick="sendWhatsAppSummary()" class="text-xs bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5 shadow transition">
+                    <i class="fa-brands fa-whatsapp text-white"></i> Resumo WhatsApp
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+
+        <!-- Top Metrics Cards & Odometer Controller -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- KM Controller Card -->
+            <div class="bg-darkcard border border-darkborder p-4 rounded-xl shadow relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-gauge text-blue-400"></i> Odômetro Atual
+                    </span>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <input id="inputKm" type="number" step="50" class="text-2xl font-bold bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-36 focus:outline-none focus:border-blue-500" value="104500" onchange="updateOdometer(this.value)">
+                        <span class="text-sm font-semibold text-slate-400">km</span>
+                    </div>
+                </div>
+                <div class="mt-3 flex gap-1.5">
+                    <button onclick="addKm(250)" class="text-xs bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-300 border border-slate-700">+250 km</button>
+                    <button onclick="addKm(500)" class="text-xs bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-300 border border-slate-700">+500 km</button>
+                    <button onclick="addKm(1000)" class="text-xs bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-300 border border-slate-700">+1.000 km</button>
+                </div>
+            </div>
+
+            <!-- Health Score Card -->
+            <div class="bg-darkcard border border-darkborder p-4 rounded-xl shadow flex flex-col justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-heart-pulse text-emerald-400"></i> Score de Confiabilidade
+                </span>
+                <div class="mt-2 flex items-center justify-between">
+                    <div>
+                        <div class="text-3xl font-extrabold text-white" id="healthScore">82%</div>
+                        <div class="text-xs text-amber-400 font-medium mt-0.5" id="healthText">Atenção em 2 itens críticos</div>
+                    </div>
+                    <div class="w-12 h-12 rounded-full border-4 border-amber-500 flex items-center justify-center text-amber-400 text-sm font-bold" id="healthCircle">
+                        !
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Ponderado por limites de km e tempo</div>
+            </div>
+
+            <!-- Urgent Items -->
+            <div class="bg-darkcard border border-darkborder p-4 rounded-xl shadow flex flex-col justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-500"></i> Alertas Imediatos
+                </span>
+                <div class="mt-1">
+                    <div class="text-3xl font-extrabold text-rose-400" id="criticalCount">2</div>
+                    <div class="text-xs text-rose-300 mt-0.5">Correia Dentada (>5 anos) & Filtro Comb.</div>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Troca obrigatória por segurança</div>
+            </div>
+
+            <!-- Next Scheduled Service -->
+            <div class="bg-darkcard border border-darkborder p-4 rounded-xl shadow flex flex-col justify-between">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-wrench text-blue-400"></i> Próxima Revisão Anual
+                </span>
+                <div class="mt-1">
+                    <div class="text-xl font-bold text-white">Dezembro / 2026</div>
+                    <div class="text-xs text-slate-300 mt-0.5">Óleo 5W-40, Freio DOT4 e DH</div>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2">Estimativa: ~105.000 km</div>
+            </div>
+        </section>
+
+        <!-- Critical Attention Banner -->
+        <section class="bg-gradient-to-r from-red-950/80 to-slate-900 border-l-4 border-red-500 p-4 rounded-xl border border-red-900/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-start gap-3">
+                <div class="text-red-400 text-2xl mt-0.5"><i class="fa-solid fa-circle-exclamation"></i></div>
+                <div>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wide">Atenção Prioritária do Motor EA111</h3>
+                    <p class="text-xs text-slate-300 mt-0.5">
+                        A correia dentada já ultrapassou a janela temporal de segurança (4 a 5 anos). No motor 1.6 EA111, a quebra causa empenamento severo de válvulas. O filtro de combustível também está com 4 anos (última troca aos 84k km).
+                    </p>
+                </div>
+            </div>
+            <button onclick="scrollToSection('plan2026')" class="whitespace-nowrap text-xs bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg transition shadow">
+                Ver Peças do Kit
+            </button>
+        </section>
+
+        <!-- Transition GNV 2027 Toggle Banner -->
+        <section class="bg-slate-800/80 border border-slate-700 p-4 rounded-xl">
+            <div class="flex justify-between items-center cursor-pointer" onclick="toggleGnvDetails()">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-gas-pump"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-white flex items-center gap-2">
+                            Transição Prevista: Remoção do GNV em 2027
+                            <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-mono uppercase">Confirmado</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Clique para ver o impacto mecânico de alívio de peso e recalibração flex</p>
+                    </div>
+                </div>
+                <div id="gnvChevron" class="text-slate-400 text-sm transition-transform"><i class="fa-solid fa-chevron-down"></i></div>
+            </div>
+            <div id="gnvDetails" class="hidden mt-4 pt-4 border-t border-slate-700 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-darkcard p-3 rounded-lg border border-slate-700">
+                    <span class="font-bold text-white block mb-1">1. Suspensão Traseira</span>
+                    Alívio de ~80 kg do cilindro. As molas reforçadas de GNV deixarão o carro muito alto e duro. Recomenda-se voltar para as molas padrão.
+                </div>
+                <div class="bg-darkcard p-3 rounded-lg border border-slate-700">
+                    <span class="font-bold text-white block mb-1">2. Sistema de Ignição</span>
+                    Fim do estresse térmico do gás. Velas passam a durar 30.000 a 40.000 km e bobina opera fria e sem sobrecarga.
+                </div>
+                <div class="bg-darkcard p-3 rounded-lg border border-slate-700">
+                    <span class="font-bold text-white block mb-1">3. Economia Burocrática</span>
+                    Fim das taxas de CSV/Inmetro, reteste de cilindro e despesas de homologação anual de gás.
+                </div>
+            </div>
+        </section>
+
+        <!-- Components Lifespan Monitoring (Progress Bars) -->
+        <section class="bg-darkcard border border-darkborder p-5 rounded-xl shadow">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-bars-progress text-blue-400"></i> Monitor de Vida Útil dos Componentes
+                    </h2>
+                    <p class="text-xs text-slate-400">Cálculo dinâmico baseado em tempo decorrido e km rodado</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="componentsGrid">
+                <!-- Dynamically generated by JS -->
+            </div>
+        </section>
+
+        <!-- Analytics & Interactive Schedule Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Expense Chart -->
+            <div class="bg-darkcard border border-darkborder p-5 rounded-xl shadow flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-chart-pie text-blue-400"></i> Distribuição de Custos (2026–2030)
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">Projeção por sistema do veículo</p>
+                    <div class="relative h-56 flex items-center justify-center">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-700 flex justify-between text-xs text-slate-300">
+                    <span>Estimativa Total 5 Anos:</span>
+                    <span class="font-bold text-emerald-400 text-sm" id="totalCost">R$ 3.865,00</span>
+                </div>
+            </div>
+
+            <!-- Maintenance Schedule Table (2026-2030) -->
+            <div class="lg:col-span-2 bg-darkcard border border-darkborder p-5 rounded-xl shadow flex flex-col justify-between" id="plan2026">
+                <div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-blue-400"></i> Cronograma de Serviços (2026 a 2030)
+                        </h3>
+                        <div class="flex gap-1.5" id="yearFilters">
+                            <button onclick="filterYear('ALL')" class="text-xs px-2.5 py-1 rounded bg-blue-600 text-white font-medium">Todos</button>
+                            <button onclick="filterYear('2026')" class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">2026</button>
+                            <button onclick="filterYear('2027')" class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">2027</button>
+                            <button onclick="filterYear('2028')" class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">2028</button>
+                            <button onclick="filterYear('2029')" class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">2029</button>
+                            <button onclick="filterYear('2030')" class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">2030</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 sticky top-0">
+                                <tr>
+                                    <th class="p-2">Ano</th>
+                                    <th class="p-2">Serviço / Item</th>
+                                    <th class="p-2">Km Alvo</th>
+                                    <th class="p-2">Data Prevista</th>
+                                    <th class="p-2">Valor Est.</th>
+                                    <th class="p-2 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800" id="scheduleBody">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Notification Toast Modal -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-blue-500 text-white px-4 py-3 rounded-lg shadow-xl hidden transition transform duration-300 z-50 text-xs flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-blue-400"></i>
+        <span id="toastMsg">Odômetro atualizado com sucesso!</span>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        // Initial Vehicle Data
+        let currentKm = localStorage.getItem('voyage_km') ? parseInt(localStorage.getItem('voyage_km')) : 104500;
+        document.getElementById('inputKm').value = currentKm;
+
+        // Components lifecycle definition
+        const components = [
+            {
+                name: "Correia Dentada + Tensor",
+                lastKm: 70940,
+                lastDate: "2020-04-27",
+                maxKm: 50000,
+                maxMonths: 48,
+                critical: true,
+                system: "Motor"
+            },
+            {
+                name: "Filtro de Combustível",
+                lastKm: 84000,
+                lastDate: "2022-12-05",
+                maxKm: 15000,
+                maxMonths: 24,
+                critical: true,
+                system: "Injeção"
+            },
+            {
+                name: "Fluido da Direção Hidráulica",
+                lastKm: 84000,
+                lastDate: "2022-12-05",
+                maxKm: 40000,
+                maxMonths: 48,
+                critical: false,
+                system: "Direção"
+            },
+            {
+                name: "Óleo 5W-40 + Filtro de Óleo",
+                lastKm: 100600,
+                lastDate: "2025-12-05",
+                maxKm: 10000,
+                maxMonths: 12,
+                critical: false,
+                system: "Motor"
+            },
+            {
+                name: "Fluido de Freio (DOT 4)",
+                lastKm: 96367,
+                lastDate: "2024-12-27",
+                maxKm: 30000,
+                maxMonths: 24,
+                critical: false,
+                system: "Freios"
+            },
+            {
+                name: "Filtro de Ar do Motor",
+                lastKm: 99170,
+                lastDate: "2025-07-24",
+                maxKm: 15000,
+                maxMonths: 24,
+                critical: false,
+                system: "Motor"
+            },
+            {
+                name: "Velas e Cabos de Ignição",
+                lastKm: 104000,
+                lastDate: "2026-09-07",
+                maxKm: 20000,
+                maxMonths: 24,
+                critical: false,
+                system: "Ignição"
+            },
+            {
+                name: "Bateria Power (60Ah)",
+                lastKm: 101942,
+                lastDate: "2026-01-31",
+                maxKm: 50000,
+                maxMonths: 36,
+                critical: false,
+                system: "Elétrica"
+            }
+        ];
+
+        // Schedule entries
+        const schedule = [
+            { id: 1, year: '2026', title: "Troca de óleo do motor e filtro", km: 105000, date: "2026-12-05", value: 220, category: "Motor", done: false },
+            { id: 2, year: '2026', title: "Kit correia dentada + tensor", km: 105000, date: "2026-12-10", value: 380, category: "Motor", done: false },
+            { id: 3, year: '2026', title: "Correia do alternador e ar-condicionado", km: 105000, date: "2026-12-10", value: 110, category: "Motor", done: false },
+            { id: 4, year: '2026', title: "Filtro de combustível", km: 105000, date: "2026-12-10", value: 30, category: "Injeção", done: false },
+            { id: 5, year: '2026', title: "Fluido de freio (DOT 4)", km: 105000, date: "2026-12-15", value: 90, category: "Freios", done: false },
+            { id: 6, year: '2026', title: "Fluido da direção hidráulica", km: 105000, date: "2026-12-15", value: 100, category: "Direção", done: false },
+
+            { id: 7, year: '2027', title: "Retirada do kit GNV + baixa CSV", km: 107000, date: "2027-01-20", value: 450, category: "Transição GNV", done: false },
+            { id: 8, year: '2027', title: "Avaliação/Troca das molas traseiras", km: 107000, date: "2027-01-25", value: 250, category: "Suspensão", done: false },
+            { id: 9, year: '2027', title: "Filtro de ar do motor", km: 110000, date: "2027-11-20", value: 25, category: "Motor", done: false },
+            { id: 10, year: '2027', title: "Filtro de ar da cabine", km: 110000, date: "2027-11-20", value: 20, category: "Conforto", done: false },
+            { id: 11, year: '2027', title: "Troca de óleo do motor e filtro", km: 110200, date: "2027-12-05", value: 230, category: "Motor", done: false },
+            { id: 12, year: '2027', title: "Rodízio + Alinhamento/Balanceamento", km: 110200, date: "2027-12-05", value: 90, category: "Suspensão", done: false },
+
+            { id: 13, year: '2028', title: "Limpeza e aditivo do radiador", km: 114000, date: "2028-10-15", value: 120, category: "Arrefecimento", done: false },
+            { id: 14, year: '2028', title: "Fluido de freio (DOT 4)", km: 115000, date: "2028-12-05", value: 95, category: "Freios", done: false },
+            { id: 15, year: '2028', title: "Filtro de combustível", km: 115000, date: "2028-12-05", value: 35, category: "Injeção", done: false },
+            { id: 16, year: '2028', title: "Troca de óleo do motor e filtro", km: 115400, date: "2028-12-05", value: 240, category: "Motor", done: false },
+
+            { id: 17, year: '2029', title: "Filtro de ar do motor + cabine", km: 120000, date: "2029-11-15", value: 55, category: "Motor", done: false },
+            { id: 18, year: '2029', title: "Troca de óleo do motor e filtro", km: 120600, date: "2029-12-05", value: 250, category: "Motor", done: false },
+            { id: 19, year: '2029', title: "Velas de ignição (flex)", km: 120600, date: "2029-12-10", value: 120, category: "Ignição", done: false },
+            { id: 20, year: '2029', title: "Bateria chumbo-ácido (preventiva)", km: 120600, date: "2029-12-15", value: 320, category: "Elétrica", done: false },
+
+            { id: 21, year: '2030', title: "Kit correia dentada + tensor", km: 125000, date: "2030-11-20", value: 420, category: "Motor", done: false },
+            { id: 22, year: '2030', title: "Fluido de freio (DOT 4)", km: 125500, date: "2030-12-05", value: 100, category: "Freios", done: false },
+            { id: 23, year: '2030', title: "Filtro de combustível", km: 125500, date: "2030-12-05", value: 35, category: "Injeção", done: false },
+            { id: 24, year: '2030', title: "Fluido da direção hidráulica", km: 125500, date: "2030-12-05", value: 120, category: "Direção", done: false },
+            { id: 25, year: '2030', title: "Troca de óleo do motor e filtro", km: 125800, date: "2030-12-05", value: 260, category: "Motor", done: false }
+        ];
+
+        // Load saved checklist status
+        const savedDone = JSON.parse(localStorage.getItem('voyage_done') || '{}');
+        schedule.forEach(s => {
+            if (savedDone[s.id] !== undefined) s.done = savedDone[s.id];
+        });
+
+        function getElapsedMonths(dateStr) {
+            const d1 = new Date(dateStr);
+            const d2 = new Date(); // current
+            return (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+        }
+
+        function calculateWear(comp) {
+            const kmWear = (currentKm - comp.lastKm) / comp.maxKm;
+            const monthsWear = getElapsedMonths(comp.lastDate) / comp.maxMonths;
+            const wear = Math.max(kmWear, monthsWear);
+            return Math.min(Math.round(wear * 100), 100);
+        }
+
+        function renderComponents() {
+            const grid = document.getElementById('componentsGrid');
+            grid.innerHTML = '';
+            let critCount = 0;
+
+            components.forEach(c => {
+                const wear = calculateWear(c);
+                const kmDriven = currentKm - c.lastKm;
+                const months = getElapsedMonths(c.lastDate);
+
+                let badgeColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+                let barColor = "bg-emerald-500";
+                let statusText = "Em dia";
+
+                if (wear >= 95) {
+                    badgeColor = "bg-rose-500/20 text-rose-400 border-rose-500/30";
+                    barColor = "bg-rose-500";
+                    statusText = "Vencido / Trocar";
+                    if (c.critical) critCount++;
+                } else if (wear >= 75) {
+                    badgeColor = "bg-amber-500/20 text-amber-400 border-amber-500/30";
+                    barColor = "bg-amber-500";
+                    statusText = "Atenção Próxima";
+                }
+
+                grid.innerHTML += `
+                    <div class="bg-slate-900/60 border border-slate-700/60 p-3.5 rounded-lg flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">${c.name}</h4>
+                                    <span class="text-[10px] text-slate-400">Última troca: ${c.lastKm.toLocaleString('pt-BR')} km (${new Date(c.lastDate).toLocaleDateString('pt-BR')})</span>
+                                </div>
+                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColor}">${statusText}</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden">
+                                <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${wear}%"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-800">
+                            <span>Rodados: <b class="text-slate-200">${kmDriven.toLocaleString('pt-BR')} km</b> / ${c.maxKm.toLocaleString('pt-BR')} km</span>
+                            <span>Tempo: <b class="text-slate-200">${months} meses</b> / ${c.maxMonths}m</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('criticalCount').innerText = critCount;
+        }
+
+        function renderSchedule(filterYear = 'ALL') {
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = '';
+            const filtered = filterYear === 'ALL' ? schedule : schedule.filter(s => s.year === filterYear);
+
+            filtered.forEach(s => {
+                const trClass = s.done ? 'bg-emerald-950/20 line-through text-slate-500' : 'hover:bg-slate-800/50';
+                tbody.innerHTML += `
+                    <tr class="${trClass} transition">
+                        <td class="p-2 font-mono text-[11px] text-slate-400">${s.year}</td>
+                        <td class="p-2 font-medium text-slate-200">${s.title}</td>
+                        <td class="p-2 font-mono text-[11px]">${s.km.toLocaleString('pt-BR')} km</td>
+                        <td class="p-2 font-mono text-[11px]">${new Date(s.date).toLocaleDateString('pt-BR')}</td>
+                        <td class="p-2 font-bold text-slate-200">R$ ${s.value.toFixed(2).replace('.', ',')}</td>
+                        <td class="p-2 text-center">
+                            <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleDone(${s.id}, this.checked)" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-slate-800 border-slate-700 cursor-pointer">
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleDone(id, isDone) {
+            const item = schedule.find(s => s.id === id);
+            if (item) {
+                item.done = isDone;
+                const saved = JSON.parse(localStorage.getItem('voyage_done') || '{}');
+                saved[id] = isDone;
+                localStorage.setItem('voyage_done', JSON.stringify(saved));
+                renderSchedule();
+                showToast(isDone ? "Serviço marcado como concluído!" : "Serviço desmarcado.");
+            }
+        }
+
+        function filterYear(year) {
+            document.querySelectorAll('#yearFilters button').forEach(b => {
+                b.className = (b.innerText === year || (year === 'ALL' && b.innerText === 'Todos')) 
+                    ? 'text-xs px-2.5 py-1 rounded bg-blue-600 text-white font-medium' 
+                    : 'text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700';
+            });
+            renderSchedule(year);
+        }
+
+        function updateOdometer(val) {
+            currentKm = parseInt(val) || 104500;
+            localStorage.setItem('voyage_km', currentKm);
+            renderComponents();
+            showToast("Odômetro atualizado para " + currentKm.toLocaleString('pt-BR') + " km");
+        }
+
+        function addKm(delta) {
+            currentKm += delta;
+            document.getElementById('inputKm').value = currentKm;
+            updateOdometer(currentKm);
+        }
+
+        function toggleGnvDetails() {
+            const det = document.getElementById('gnvDetails');
+            const chev = document.getElementById('gnvChevron');
+            det.classList.toggle('hidden');
+            chev.classList.toggle('rotate-180');
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => { t.classList.add('hidden'); }, 3000);
+        }
+
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                alert("Este navegador não suporta notificações de área de trabalho.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification("AutoGestão - VW Voyage", {
+                        body: "Notificações ativadas! Você receberá alertas dos prazos de correia, óleo e fluidos.",
+                        icon: "https://cdn-icons-png.flaticon.com/512/3202/3202926.png"
+                    });
+                }
+            });
+        }
+
+        function sendWhatsAppSummary() {
+            const pending = schedule.filter(s => s.year === '2026' && !s.done);
+            let text = "*🚨 REVISÃO PENDENTE - VW VOYAGE 1.6 (FINAL 2026)*%0A";
+            text += `*KM Atual:* ${currentKm.toLocaleString('pt-BR')} km%0A%0A`;
+            pending.forEach(p => {
+                text += `• ${p.title} (Previsto: ${p.km.toLocaleString('pt-BR')} km) - ~R$ ${p.value.toFixed(2)}%0A`;
+            });
+            text += "%0A*⚠️ Atenção Crítica:* Correia Dentada e Filtro de Combustível prioritários!";
+            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+        }
+
+        // Initialize Chart
+        function initChart() {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            const categories = {};
+            schedule.forEach(s => {
+                categories[s.category] = (categories[s.category] || 0) + s.value;
+            });
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: [
+                            '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#94A3B8',
+                                boxWidth: 10,
+                                font: { size: 10 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Bootstrap
+        renderComponents();
+        renderSchedule();
+        initChart();
+    </script>
+</body>
+</html>
