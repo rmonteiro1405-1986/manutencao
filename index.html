@@ -99,7 +99,7 @@
                         <i class="fa-solid fa-gauge text-blue-400"></i> Odômetro Atual
                     </span>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <input id="inputKm" type="number" step="50" class="text-2xl font-bold bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-36 focus:outline-none focus:border-blue-500" value="104500" onchange="updateOdometer(this.value)">
+                        <input id="inputKm" type="number" step="10" class="text-2xl font-bold bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-36 focus:outline-none focus:border-blue-500" value="104500" oninput="updateOdometer(this.value)" onchange="updateOdometer(this.value)">
                         <span class="text-sm font-semibold text-slate-400">km</span>
                     </div>
                 </div>
@@ -889,16 +889,24 @@
         }
 
         function updateOdometer(val) {
-            currentKm = parseInt(val) || (currentVehicle === 'Voyage' ? 104500 : 66250);
+            const parsed = parseInt(val);
+            if (isNaN(parsed) || parsed <= 0) return;
+            currentKm = parsed;
             setActiveKm(currentKm);
             renderComponents();
-            showToast(`Odômetro ${currentVehicle} atualizado para ${currentKm.toLocaleString('pt-BR')} km`);
+            renderBannerAndTips();
+            renderScheduleTable();
+            // Também sincroniza o campo visual caso tenha sido chamado via botão (+250, etc.)
+            const inp = document.getElementById('inputKm');
+            if (inp && parseInt(inp.value) !== currentKm) {
+                inp.value = currentKm;
+            }
         }
 
         function addKm(delta) {
-            currentKm += delta;
-            document.getElementById('inputKm').value = currentKm;
-            updateOdometer(currentKm);
+            const newKm = (currentKm || getActiveKm()) + delta;
+            updateOdometer(newKm);
+            showToast(`Odômetro ${currentVehicle}: +${delta} km (${newKm.toLocaleString('pt-BR')} km)`);
         }
 
         function showToast(msg) {
@@ -1207,9 +1215,13 @@
                 const data = await res.json();
                 if (data.history && Array.isArray(data.history)) {
                     setActiveHistory(data.history);
-                    if (data.odometer && data.odometer >= currentKm) {
+                    // Se a planilha tiver um KM maior (de algum lançamento recente), atualiza
+                    if (data.odometer && data.odometer > currentKm) {
                         currentKm = data.odometer;
                         setActiveKm(currentKm);
+                        document.getElementById('inputKm').value = currentKm;
+                    } else {
+                        // Garante que o input mantenha o KM ativo salvo localmente
                         document.getElementById('inputKm').value = currentKm;
                     }
                     renderComponents();
