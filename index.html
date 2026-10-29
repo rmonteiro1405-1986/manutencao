@@ -291,7 +291,6 @@
 
     </main>
 
-    
     <!-- Sync Settings Modal -->
     <div id="modalSync" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-darkcard border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-6 relative">
@@ -412,11 +411,9 @@
 
     <!-- Main Logic -->
     <script>
-        // Pre-loaded history from user spreadsheet
-        const initialHistory = [{"id": "hist_1", "service": "CARRO", "km": 70940, "date": "2020-04-27", "value": 29000.0, "category": "Manutenção"}, {"id": "hist_2", "service": "LÂMPADAS DA LANTERNA (RÉ)", "km": 70980, "date": "2020-05-04", "value": 5.8, "category": "Manutenção"}, {"id": "hist_3", "service": "LIMPEZA DO TBI", "km": 71000, "date": "2020-05-08", "value": 0.0, "category": "Manutenção"}, {"id": "hist_4", "service": "REGULAGEM DO GNV", "km": 71200, "date": "2020-06-05", "value": 0.0, "category": "Manutenção"}, {"id": "hist_5", "service": "CALHA DE CHUVA", "km": 71500, "date": "2020-06-13", "value": 103.8, "category": "Manutenção"}, {"id": "hist_6", "service": "FILTRO DE AR E LIMPEZA", "km": 71550, "date": "2020-06-16", "value": 24.0, "category": "Manutenção"}, {"id": "hist_7", "service": "LANTERNA TRASEIRA DIREITA", "km": 71700, "date": "2020-07-02", "value": 0.0, "category": "Manutenção"}, {"id": "hist_8", "service": "SUPORTE GPS", "km": 71900, "date": "2020-07-17", "value": 30.0, "category": "Manutenção"}, {"id": "hist_9", "service": "BOTÃO ABRE/FECHA PORTAS", "km": 71900, "date": "2020-07-18", "value": 0.0, "category": "Manutenção"}, {"id": "hist_10", "service": "Alto Falante JBL", "km": 72000, "date": "2020-07-25", "value": 155.0, "category": "Manutenção"}, {"id": "hist_11", "service": "Antena Tubarão", "km": 72250, "date": "2020-08-12", "value": 25.0, "category": "Manutenção"}, {"id": "hist_12", "service": "Limpadores de Parabrisa", "km": 73305, "date": "2020-11-10", "value": 76.0, "category": "Manutenção"}, {"id": "hist_13", "service": "Extintor de incêndio", "km": 73305, "date": "2020-11-10", "value": 45.0, "category": "Manutenção"}, {"id": "hist_14", "service": "Óleo + Filtro de óleo", "km": 73305, "date": "2020-11-10", "value": 214.0, "category": "Manutenção"}, {"id": "hist_15", "service": "Calço do motor", "km": 74000, "date": "2020-12-21", "value": 691.0, "category": "Manutenção"}, {"id": "hist_17", "service": "Bieletas", "km": 75000, "date": "2021-02-18", "value": 110.0, "category": "Manutenção"}, {"id": "hist_18", "service": "LED lanternas dianteiras", "km": 76000, "date": "2021-05-01", "value": 6.0, "category": "Manutenção"}, {"id": "hist_19", "service": "2 Pneus Traseiros + Bicos", "km": 77000, "date": "2021-07-08", "value": 632.0, "category": "Manutenção"}, {"id": "hist_20", "service": "Botões do vidro elétrico (LE + LD)", "km": 78288, "date": "2021-08-20", "value": 65.0, "category": "Manutenção"}, {"id": "hist_21", "service": "Apoio de braço", "km": 79000, "date": "2021-11-20", "value": 120.0, "category": "Manutenção"}, {"id": "hist_22", "service": "Moldura 2 Din", "km": 79000, "date": "2021-11-20", "value": 120.0, "category": "Manutenção"}, {"id": "hist_23", "service": "Multimídia Positron SP8240", "km": 79000, "date": "2021-11-26", "value": 450.0, "category": "Manutenção"}, {"id": "hist_24", "service": "Alternador", "km": 79470, "date": "2021-12-06", "value": 350.0, "category": "Manutenção"}, {"id": "hist_25", "service": "Bobina de Ignição", "km": 79470, "date": "2021-12-06", "value": 100.0, "category": "Manutenção"}, {"id": "hist_26", "service": "Cabo de Vela", "km": 79470, "date": "2021-12-06", "value": 75.0, "category": "Manutenção"}, {"id": "hist_27", "service": "Velas", "km": 79470, "date": "2021-12-06", "value": 145.0, "category": "Manutenção"}, {"id": "hist_28", "service": "Óleo", "km": 79470, "date": "2021-12-06", "value": 147.6, "category": "Manutenção"}, {"id": "hist_29", "service": "Filtro de óleo", "km": 79470, "date": "2021-12-06", "value": 16.0, "category": "Manutenção"}, {"id": "hist_30", "service": "Pastilha de freio", "km": 79470, "date": "2021-12-06", "value": 80.0, "category": "Manutenção"}, {"id": "hist_31", "service": "Regulagem do freio de mão", "km": 79470, "date": "2021-12-06", "value": 0.0, "category": "Manutenção"}, {"id": "hist_32", "service": "Fluido de freio", "km": 79470, "date": "2021-12-06", "value": 35.8, "category": "Manutenção"}, {"id": "hist_33", "service": "Mão de obra", "km": 79470, "date": "2021-12-06", "value": 300.0, "category": "Manutenção"}, {"id": "hist_34", "service": "Conserto da porta do motorista", "km": 79490, "date": "2021-12-11", "value": 0.0, "category": "Manutenção"}, {"id": "hist_35", "service": "Polimento Cristalizado", "km": 79490, "date": "2021-12-11", "value": 250.0, "category": "Manutenção"}, {"id": "hist_36", "service": "Filtro de ar + Higienização", "km": 79750, "date": "2021-12-20", "value": 29.0, "category": "Manutenção"}, {"id": "hist_38", "service": "Bateria Power Free", "km": 81400, "date": "2022-05-07", "value": 235.8, "category": "Manutenção"}, {"id": "hist_39", "service": "Correia do alternador + Correia do ar cond.", "km": 81450, "date": "2022-05-11", "value": 96.0, "category": "Manutenção"}, {"id": "hist_40", "service": "Vazamento de óleo", "km": 81450, "date": "2022-05-11", "value": 340.0, "category": "Manutenção"}, {"id": "hist_41", "service": "Borrachas do Anti-Chamas", "km": 81450, "date": "2022-05-11", "value": 35.0, "category": "Manutenção"}, {"id": "hist_42", "service": "Óleo Lubrax Supra 5w40", "km": 81450, "date": "2022-05-11", "value": 72.0, "category": "Manutenção"}, {"id": "hist_43", "service": "Válvula do cilindro do GNV", "km": 82600, "date": "2022-08-15", "value": 250.0, "category": "Manutenção"}, {"id": "hist_44", "service": "Óleo Lubrax Valora 5w40 (502/505)", "km": 83828, "date": "2022-12-02", "value": 180.0, "category": "Manutenção"}, {"id": "hist_45", "service": "Filtro de óleo Wega", "km": 83828, "date": "2022-12-02", "value": 20.0, "category": "Manutenção"}, {"id": "hist_46", "service": "Fluido de freio", "km": 84000, "date": "2022-12-05", "value": 85.0, "category": "Manutenção"}, {"id": "hist_47", "service": "Fluido da Direção Hidráulica", "km": 84000, "date": "2022-12-05", "value": 85.0, "category": "Manutenção"}, {"id": "hist_48", "service": "Filtro de Ar", "km": 84000, "date": "2022-12-05", "value": 24.5, "category": "Manutenção"}, {"id": "hist_49", "service": "Filtro de Combustível", "km": 84000, "date": "2022-12-05", "value": 24.0, "category": "Manutenção"}, {"id": "hist_50", "service": "Alinhamento", "km": 84000, "date": "2022-12-05", "value": 40.0, "category": "Manutenção"}, {"id": "hist_52", "service": "Sensor do Pedal da Embreagem", "km": 87500, "date": "2023-05-12", "value": 79.0, "category": "Manutenção"}, {"id": "hist_53", "service": "Pneus Dianteiros", "km": 90056, "date": "2023-11-03", "value": 527.0, "category": "Manutenção"}, {"id": "hist_54", "service": "Alinhamento + Balanceamento", "km": 90056, "date": "2023-11-03", "value": 80.0, "category": "Manutenção"}, {"id": "hist_55", "service": "Kit dos Amortecedores", "km": 90100, "date": "2023-11-04", "value": 245.0, "category": "Manutenção"}, {"id": "hist_56", "service": "Molas Traseiras GNV", "km": 90100, "date": "2023-11-04", "value": 215.0, "category": "Manutenção"}, {"id": "hist_57", "service": "Mão de obra", "km": 90100, "date": "2023-11-04", "value": 250.0, "category": "Manutenção"}, {"id": "hist_58", "service": "Óleo", "km": 90730, "date": "2023-12-04", "value": 180.0, "category": "Manutenção"}, {"id": "hist_59", "service": "Filtro de Óleo", "km": 90730, "date": "2023-12-04", "value": 20.0, "category": "Manutenção"}, {"id": "hist_60", "service": "Mão de obra", "km": 90730, "date": "2023-12-04", "value": 10.0, "category": "Manutenção"}, {"id": "hist_61", "service": "Borracha das Portas", "km": 90900, "date": "2023-12-06", "value": 220.0, "category": "Manutenção"}, {"id": "hist_62", "service": "Bobina de Ignição", "km": 91580, "date": "2023-12-15", "value": 150.0, "category": "Manutenção"}, {"id": "hist_64", "service": "Limpador de Parabrisas", "km": 94350, "date": "2024-07-30", "value": 35.0, "category": "Manutenção"}, {"id": "hist_65", "service": "Aditivo do Radiador", "km": 95375, "date": "2024-10-05", "value": 45.0, "category": "Manutenção"}, {"id": "hist_66", "service": "Fluido de freio", "km": 96367, "date": "2024-12-27", "value": 35.0, "category": "Manutenção"}, {"id": "hist_67", "service": "Óleo", "km": 96368, "date": "2024-12-30", "value": 168.0, "category": "Manutenção"}, {"id": "hist_68", "service": "Filtro de óleo", "km": 96368, "date": "2024-12-30", "value": 30.0, "category": "Manutenção"}, {"id": "hist_71", "service": "Carga de gás no arcond.", "km": 96500, "date": "2025-01-02", "value": 0.0, "category": "Manutenção"}, {"id": "hist_72", "service": "Filtro do arcond.", "km": 97000, "date": "2025-01-17", "value": 15.0, "category": "Manutenção"}, {"id": "hist_73", "service": "OrbiAir", "km": 97000, "date": "2025-01-17", "value": 15.0, "category": "Manutenção"}, {"id": "hist_74", "service": "Limpeza do TBI", "km": 99150, "date": "2025-07-23", "value": 0.0, "category": "Manutenção"}, {"id": "hist_75", "service": "Sensor de Sonda Lambda do GNV", "km": 99150, "date": "2025-07-23", "value": 150.0, "category": "Manutenção"}, {"id": "hist_76", "service": "Filtro de ar do motor", "km": 99170, "date": "2025-07-24", "value": 18.5, "category": "Manutenção"}, {"id": "hist_77", "service": "Calotas", "km": 100201, "date": "2025-10-26", "value": 79.0, "category": "Manutenção"}, {"id": "hist_78", "service": "Troca do óleo e filtro", "km": 100600, "date": "2025-12-05", "value": 218.0, "category": "Manutenção"}, {"id": "hist_79", "service": "Troca do óleo da caixa de marcha", "km": 100600, "date": "2025-12-05", "value": 70.0, "category": "Manutenção"}, {"id": "hist_84", "service": "Embreagem", "km": 101500, "date": "2026-01-17", "value": 850.0, "category": "Manutenção"}, {"id": "hist_85", "service": "Bateria", "km": 101942, "date": "2026-01-31", "value": 300.0, "category": "Manutenção"}, {"id": "hist_86", "service": "Cabo e Sensor do ABS", "km": 102400, "date": "2026-04-01", "value": 121.0, "category": "Manutenção"}, {"id": "hist_87", "service": "Alinhamento e Suspensão dianterira", "km": 102470, "date": "2026-04-06", "value": 1710.0, "category": "Manutenção"}, {"id": "hist_88", "service": "Filtro de ar da cabine", "km": 102775, "date": "2026-05-16", "value": 15.0, "category": "Manutenção"}, {"id": "hist_89", "service": "Vela e Cabo de vela", "km": 104000, "date": "2026-09-07", "value": 169.0, "category": "Manutenção"}, {"id": "hist_90", "service": "Bobina de ignição", "km": 104500, "date": "2026-10-03", "value": 160.0, "category": "Manutenção"}];
-
-        // Pre-loaded schedule 2026-2030
-        const initialSchedule = [
+        // State initialization with localStorage fallback
+        let historyData = JSON.parse(localStorage.getItem('voyage_history')) || [];
+        let scheduleData = JSON.parse(localStorage.getItem('voyage_schedule')) || [
             { id: 101, year: '2026', title: "Troca de óleo do motor e filtro", km: 105000, date: "2026-12-05", value: 220, category: "Motor", done: false },
             { id: 102, year: '2026', title: "Kit correia dentada + tensor", km: 105000, date: "2026-12-10", value: 380, category: "Motor", done: false },
             { id: 103, year: '2026', title: "Correia do alternador e ar-condicionado", km: 105000, date: "2026-12-10", value: 110, category: "Motor", done: false },
@@ -448,18 +445,15 @@
             { id: 125, year: '2030', title: "Troca de óleo do motor e filtro", km: 125800, date: "2030-12-05", value: 260, category: "Motor", done: false }
         ];
 
-        // State initialization with localStorage fallback
-        let historyData = JSON.parse(localStorage.getItem('voyage_history')) || initialHistory;
-        let scheduleData = JSON.parse(localStorage.getItem('voyage_schedule')) || initialSchedule;
         let currentKm = localStorage.getItem('voyage_km') ? parseInt(localStorage.getItem('voyage_km')) : 104500;
         let currentTab = 'history';
         let currentScheduleFilter = 'ALL';
         let currentSearchQuery = '';
         let costChartInstance = null;
+        let googleSheetsUrl = localStorage.getItem('voyage_sheets_url') || 'https://script.google.com/macros/s/AKfycbxaATZjJgQDhUEprn_JKQQh_NnpfatyHlPlZwcwr5rlA6cjXaZcCCoszWGFH6s6DL_o/exec';
 
         document.getElementById('inputKm').value = currentKm;
 
-        // Auto-detect last maintenance date and km for key components
         function getComponentLatest(keywords) {
             for (let i = historyData.length - 1; i >= 0; i--) {
                 const s = historyData[i].service.toLowerCase();
@@ -567,9 +561,7 @@
                 list = list.filter(h => h.service.toLowerCase().includes(currentSearchQuery.toLowerCase()));
             }
 
-            let totalSpent = 0;
-            list.forEach((item, index) => {
-                totalSpent += (item.value || 0);
+            list.forEach(item => {
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-800/50 transition">
                         <td class="p-2.5 font-mono text-[11px] text-slate-400">${new Date(item.date).toLocaleDateString('pt-BR')}</td>
@@ -589,7 +581,6 @@
             document.getElementById('histCountBadge').innerText = historyData.length;
             document.getElementById('totalHistoryCount').innerText = `${historyData.length} registros no histórico`;
             
-            // Total cumulative cost in all history
             const grandTotal = historyData.reduce((acc, cur) => acc + (cur.value || 0), 0);
             document.getElementById('totalHistoryCost').innerText = `R$ ${grandTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         }
@@ -616,7 +607,7 @@
                         <td class="p-2.5 font-mono text-[11px]">${new Date(s.date).toLocaleDateString('pt-BR')}</td>
                         <td class="p-2.5 font-bold text-right text-slate-200">R$ ${s.value.toFixed(2).replace('.', ',')}</td>
                         <td class="p-2.5 text-center flex items-center justify-center gap-2">
-                            <button onclick="completeScheduleItem(${s.id})" title="Marcar como realizada e adicionar ao histórico" class="text-xs bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white px-2 py-1 rounded border border-emerald-500/40 transition flex items-center gap-1">
+                            <button onclick="completeScheduleItem(${s.id})" title="Marcar como realizada" class="text-xs bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white px-2 py-1 rounded border border-emerald-500/40 transition flex items-center gap-1">
                                 <i class="fa-solid fa-check"></i> Concluir
                             </button>
                             <button onclick="deleteScheduleItem(${s.id})" title="Excluir do cronograma" class="text-slate-500 hover:text-rose-400 p-1">
@@ -628,7 +619,6 @@
             });
         }
 
-        // Tab Switching
         function switchMainTab(tab) {
             currentTab = tab;
             const histBtn = document.getElementById('tabHistBtn');
@@ -665,7 +655,6 @@
             else renderScheduleTable();
         }
 
-        // Modal Form Handling
         function openModal(type = 'realizada') {
             document.getElementById('modalForm').classList.remove('hidden');
             document.querySelector(`input[name="entryType"][value="${type}"]`).checked = true;
@@ -690,11 +679,9 @@
             document.getElementById('formService').value = name;
         }
 
-        function handleTypeChange(val) {
-            // Can adjust fields dynamically if needed
-        }
+        function handleTypeChange(val) {}
 
-        function handleFormSubmit(e) {
+        async function handleFormSubmit(e) {
             e.preventDefault();
             const type = document.querySelector('input[name="entryType"]:checked').value;
             const service = document.getElementById('formService').value.trim();
@@ -715,14 +702,13 @@
                 historyData.push(newRecord);
                 localStorage.setItem('voyage_history', JSON.stringify(historyData));
 
-                // If logged km is greater than current, bump odometer!
                 if (km > currentKm) {
                     currentKm = km;
                     localStorage.setItem('voyage_km', currentKm);
                     document.getElementById('inputKm').value = currentKm;
                 }
-                showToast("Manutenção realizada registrada no histórico!");
-                // Se conectado ao Google Sheets, enviar na nuvem
+                showToast("Gravando na planilha...");
+
                 if (googleSheetsUrl) {
                     fetch(googleSheetsUrl, {
                         method: 'POST',
@@ -735,7 +721,7 @@
                             value: val
                         })
                     }).then(() => {
-                        console.log("Enviado para o Google Sheets");
+                        showToast("Salvo na planilha com sucesso!");
                     }).catch(err => console.error("Erro ao enviar para o Sheets", err));
                 }
             } else {
@@ -752,7 +738,7 @@
                 scheduleData.push(newSchedule);
                 scheduleData.sort((a,b) => a.km - b.km);
                 localStorage.setItem('voyage_schedule', JSON.stringify(scheduleData));
-                showToast("Agendamento futuro adicionado ao cronograma!");
+                showToast("Agendamento futuro adicionado!");
             }
 
             closeModal();
@@ -765,7 +751,6 @@
         function completeScheduleItem(id) {
             const item = scheduleData.find(s => s.id === id);
             if (item) {
-                // Add to history
                 historyData.push({
                     id: 'from_sched_' + Date.now(),
                     service: item.title,
@@ -776,11 +761,24 @@
                 });
                 localStorage.setItem('voyage_history', JSON.stringify(historyData));
 
-                // Remove from schedule or mark done
                 scheduleData = scheduleData.filter(s => s.id !== id);
                 localStorage.setItem('voyage_schedule', JSON.stringify(scheduleData));
 
-                showToast(`"${item.title}" concluída e movida para o histórico!`);
+                if (googleSheetsUrl) {
+                    fetch(googleSheetsUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            service: item.title,
+                            km: currentKm,
+                            date: new Date().toISOString().split('T')[0],
+                            value: item.value
+                        })
+                    });
+                }
+
+                showToast(`"${item.title}" concluída e gravada na planilha!`);
                 renderComponents();
                 renderHistoryTable();
                 renderScheduleTable();
@@ -795,7 +793,7 @@
                 renderHistoryTable();
                 renderComponents();
                 updateChart();
-                showToast("Registro excluído com sucesso.");
+                showToast("Registro excluído.");
             }
         }
 
@@ -808,7 +806,6 @@
             }
         }
 
-        // Odometer Functions
         function updateOdometer(val) {
             currentKm = parseInt(val) || 104500;
             localStorage.setItem('voyage_km', currentKm);
@@ -829,7 +826,6 @@
             setTimeout(() => { t.classList.add('hidden'); }, 3000);
         }
 
-        // Backup / Restore JSON
         function exportBackup() {
             const backup = {
                 odometer: currentKm,
@@ -865,8 +861,6 @@
                         renderScheduleTable();
                         updateChart();
                         showToast("Dados restaurados com sucesso!");
-                    } else {
-                        alert("Arquivo de backup inválido.");
                     }
                 } catch(err) {
                     alert("Erro ao ler o arquivo JSON.");
@@ -886,7 +880,6 @@
             window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
         }
 
-        // Charts
         function updateChart() {
             const ctx = document.getElementById('costChart').getContext('2d');
             const categories = {};
@@ -928,10 +921,6 @@
             });
         }
 
-        
-        // Google Sheets Integration URL
-        let googleSheetsUrl = localStorage.getItem('voyage_sheets_url') || 'https://script.google.com/macros/s/AKfycbxaATZjJgQDhUEprn_JKQQh_NnpfatyHlPlZwcwr5rlA6cjXaZcCCoszWGFH6s6DL_o/exec';
-
         function updateSyncUi() {
             const dot = document.getElementById('syncDot');
             const txt = document.getElementById('syncText');
@@ -970,12 +959,16 @@
             }
             showToast("A sincronizar com a sua folha...");
             try {
-                const res = await fetch(googleSheetsUrl);
+                // Adicionado redirect: 'follow' para lidar com os servidores do Google
+                const res = await fetch(googleSheetsUrl, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
                 const data = await res.json();
                 if (data.history && Array.isArray(data.history)) {
                     historyData = data.history;
                     localStorage.setItem('voyage_history', JSON.stringify(historyData));
-                    if (data.odometer && data.odometer > currentKm) {
+                    if (data.odometer && data.odometer >= currentKm) {
                         currentKm = data.odometer;
                         localStorage.setItem('voyage_km', currentKm);
                         document.getElementById('inputKm').value = currentKm;
@@ -991,10 +984,9 @@
             }
         }
 
+        // Executar inicialização
         updateSyncUi();
-        if (googleSheetsUrl) { syncWithGoogleSheets(); }
-
-        // Initialization
+        syncWithGoogleSheets();
         renderComponents();
         renderHistoryTable();
         renderScheduleTable();
