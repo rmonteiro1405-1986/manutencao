@@ -304,7 +304,7 @@
                         </span>
                         <div class="mt-1">
                             <div class="text-xl font-extrabold text-amber-400" id="fuelCostPerKm">R$ -- / km</div>
-                            <div class="text-[10px] text-slate-400 mt-0.5">Custo real de rodagem</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5" id="fuelCostSub">Custo real de rodagem</div>
                         </div>
                     </div>
                     <div class="bg-slate-900/70 border border-slate-700/60 p-3 rounded-xl flex flex-col justify-between shadow-sm">
@@ -1954,19 +1954,19 @@
             if (costPerKm) {
                 if (stats.mediaCustoKm) {
                     costPerKm.innerText = `R$ ${stats.mediaCustoKm.toFixed(2)} / km`;
-                    costSub.innerText = "Gasto médio por quilômetro";
+                    if (costSub) costSub.innerText = "Gasto médio por quilômetro";
                 } else {
                     costPerKm.innerText = "--";
-                    costSub.innerText = "Custo médio por km";
+                    if (costSub) costSub.innerText = "Custo médio por km";
                 }
             }
 
             // KPI 4: Total em Combustível
-            const totalSpent = document.getElementById('fuelTotalSpent');
-            const totalSub = document.getElementById('fuelTotalSub');
+            const totalSpent = document.getElementById('fuelTotalCost') || document.getElementById('fuelTotalSpent');
+            const totalSub = document.getElementById('fuelTotalVolume') || document.getElementById('fuelTotalSub');
             if (totalSpent) {
                 totalSpent.innerText = `R$ ${stats.totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                totalSub.innerText = `${stats.count} abastecimento(s) registrado(s)`;
+                if (totalSub) totalSub.innerText = `${stats.totalLitrosConsumidos ? stats.totalLitrosConsumidos.toFixed(1) + ' L em ' : ''}${stats.count} abastecimento(s)`;
             }
 
             // Filtro por tipo de combustível se selecionado
@@ -2306,9 +2306,6 @@
                 console.error(err);
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
                 if (syncText) syncText.innerText = "Falha na Nuvem";
-                if (showToastMsg) showToast("Erro ao conectar ao Google Sheets.");
-            }
-        }
                 if (showToastMsg) showToast("Erro ao conectar ao Google Sheets.");
             }
         }
