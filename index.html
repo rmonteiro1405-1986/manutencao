@@ -96,7 +96,7 @@
                         <i class="fa-solid fa-gauge text-blue-400"></i> Odômetro Atual
                     </span>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <input id="inputKm" type="number" step="10" class="text-2xl font-bold bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-36 focus:outline-none focus:border-blue-500" value="104500" oninput="updateOdometer(this.value)" onchange="updateOdometer(this.value)">
+                        <input id="inputKm" type="number" step="10" min="0" class="text-2xl font-bold bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-36 focus:outline-none focus:border-blue-500" value="104500" oninput="updateOdometer(this.value)" onchange="updateOdometer(this.value, true)" onblur="updateOdometer(this.value, true)">
                         <span class="text-sm font-semibold text-slate-400">km</span>
                     </div>
                 </div>
@@ -391,7 +391,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_10_30_build4";
+        const APP_BUILD_ID = "v2026_10_30_build5";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
@@ -1128,9 +1128,11 @@
             else renderScheduleTable();
         }
 
-        function updateOdometer(val) {
+        function updateOdometer(val, force = false) {
             const parsed = parseInt(val, 10);
             if (isNaN(parsed) || parsed < 0) return;
+            // Se o usuário estiver digitando, espera pelo menos 4 dígitos para não quebrar cálculos intermediários
+            if (!force && String(parsed).length < 4) return;
             currentKm = parsed;
             setActiveKm(currentKm);
             renderComponents();
@@ -1138,14 +1140,16 @@
             updateNextReviewCard();
             renderScheduleTable();
             const inp = document.getElementById('inputKm');
-            if (inp && parseInt(inp.value, 10) !== currentKm) {
+            if (inp && document.activeElement !== inp && parseInt(inp.value, 10) !== currentKm) {
                 inp.value = currentKm;
             }
         }
 
         function addKm(delta) {
             const newKm = (currentKm || getActiveKm()) + delta;
-            updateOdometer(newKm);
+            const inp = document.getElementById('inputKm');
+            if (inp) inp.value = newKm;
+            updateOdometer(newKm, true);
             showToast(`Odômetro ${currentVehicle}: +${delta} km (${newKm.toLocaleString('pt-BR')} km)`);
         }
 
@@ -1587,10 +1591,18 @@
                     lastSyncTimestamp = new Date().toISOString();
                     localStorage.setItem('last_sync_time', lastSyncTimestamp);
 
-                    if (data.odometer) {
+                    // Preserva o KM atual do usuário (não rebaixa para o KM antigo do último serviço da planilha)
+                    const savedKm = getActiveKm();
+                    if (data.odometer && data.odometer > savedKm) {
                         currentKm = data.odometer;
                         setActiveKm(currentKm);
-                        document.getElementById('inputKm').value = currentKm;
+                    } else {
+                        currentKm = savedKm;
+                    }
+
+                    const inp = document.getElementById('inputKm');
+                    if (inp && document.activeElement !== inp) {
+                        inp.value = currentKm;
                     }
 
                     renderComponents();
