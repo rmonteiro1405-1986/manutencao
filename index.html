@@ -46,13 +46,13 @@
                         <h1 id="vehicleTitle" class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                             VW Voyage 1.6 Highline
                         </h1>
-                        <span id="vehicleBadge" class="text-xs bg-slate-700 text-blue-400 px-2 py-0.5 rounded font-mono">EA111</span>
+                        <span id="vehicleBadge" class="text-xs bg-slate-700 text-blue-400 px-2 py-0.5 rounded font-mono">EA111 8V</span>
                     </div>
                     <div class="flex items-center gap-1.5 mt-0.5">
-                        <button onclick="switchVehicle('Voyage')" id="btnSwitchVoyage" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-600 text-white transition flex items-center gap-1">
+                        <button onclick="switchVehicle('Voyage')" id="btnSwitchVoyage" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-600 text-white transition flex items-center gap-1 shadow-sm">
                             <i class="fa-solid fa-car text-[10px]"></i> Voyage
                         </button>
-                        <button onclick="switchVehicle('Crosser')" id="btnSwitchCrosser" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1">
+                        <button onclick="switchVehicle('Crosser')" id="btnSwitchCrosser" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1 shadow-sm">
                             <i class="fa-solid fa-motorcycle text-[10px]"></i> Crosser
                         </button>
                     </div>
@@ -61,22 +61,26 @@
 
             <!-- Header Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-                <button onclick="forcarReset()" title="Limpar cache local do telemóvel" class="text-xs bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-400 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
+                <button onclick="forcarReset()" title="Recarregar dados limpos do Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-400 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
                     <i class="fa-solid fa-arrows-rotate"></i> Repor Dados
                 </button>
-                <button onclick="openSyncModal()" id="btnSyncStatus" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-300">
+                <button onclick="openSyncModal()" id="btnSyncStatus" title="Status da sincronização" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-300">
                     <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="syncText">Nuvem Conectada</span>
                 </button>
-                <button onclick="syncWithGoogleSheets()" title="Recarregar dados do Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 p-1.5 rounded-lg transition text-slate-300">
+                <button onclick="syncWithGoogleSheets(true)" title="Recarregar dados do Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 p-1.5 rounded-lg transition text-slate-300">
                     <i class="fa-solid fa-cloud-arrow-down"></i>
                 </button>
                 <button onclick="openModal('realizada')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition">
                     <i class="fa-solid fa-plus"></i> Nova Manutenção
                 </button>
-                <button onclick="exportBackup()" title="Baixar cópia de segurança em JSON" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
-                    <i class="fa-solid fa-download text-slate-300"></i> Backup
+                <button onclick="exportBackup()" title="Baixar cópia de segurança em JSON" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition text-slate-300">
+                    <i class="fa-solid fa-download"></i> Backup
                 </button>
+                <button onclick="document.getElementById('importFileInput').click()" title="Restaurar backup JSON" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition text-slate-300">
+                    <i class="fa-solid fa-upload"></i> Importar
+                </button>
+                <input type="file" id="importFileInput" accept=".json" onchange="importBackup(event)" class="hidden">
             </div>
         </div>
     </header>
@@ -105,14 +109,19 @@
 
             <!-- Total Invested in Vehicle -->
             <div class="bg-darkcard border border-darkborder p-4 rounded-xl shadow flex flex-col justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-receipt text-emerald-400"></i> Histórico Registrado
-                </span>
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-receipt text-emerald-400"></i> Histórico Registrado
+                    </span>
+                    <button onclick="togglePurchaseInTotal()" id="btnTogglePurchase" title="Clique para alternar a exibição com ou sem o valor de compra" class="text-[10px] text-blue-400 hover:text-blue-300 underline font-medium">
+                        Sem Compra
+                    </button>
+                </div>
                 <div class="mt-1">
                     <div class="text-2xl font-extrabold text-emerald-400" id="totalHistoryCost">R$ 0,00</div>
                     <div class="text-xs text-slate-300 mt-0.5" id="totalHistoryCount">0 serviços registrados</div>
                 </div>
-                <div class="text-[11px] text-slate-400 mt-2" id="totalHistorySub">Total de intervenções</div>
+                <div class="text-[11px] text-slate-400 mt-2 truncate" id="totalHistorySub">Total de intervenções</div>
             </div>
 
             <!-- Urgent Items -->
@@ -133,10 +142,10 @@
                     <i class="fa-solid fa-wrench text-blue-400"></i> Próxima Revisão
                 </span>
                 <div class="mt-1">
-                    <div class="text-xl font-bold text-white" id="nextReviewTitle">Dezembro / 2026</div>
-                    <div class="text-xs text-slate-300 mt-0.5" id="nextReviewDetail">Óleo 5W-40, Freio DOT4 e DH</div>
+                    <div class="text-base font-bold text-white truncate" id="nextReviewTitle">Carregando...</div>
+                    <div class="text-xs text-slate-300 mt-0.5 truncate" id="nextReviewDetail">-</div>
                 </div>
-                <div class="text-[11px] text-slate-400 mt-2" id="nextReviewEstimate">Estimativa: ~105.000 km</div>
+                <div class="text-[11px] text-slate-400 mt-2 truncate" id="nextReviewEstimate">-</div>
             </div>
         </section>
 
@@ -151,7 +160,7 @@
                     <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-bars-progress text-blue-400"></i> Monitor de Vida Útil dos Componentes
                     </h2>
-                    <p class="text-xs text-slate-400">Atualiza automaticamente sempre que você cadastra uma nova manutenção realizada</p>
+                    <p class="text-xs text-slate-400">Atualiza automaticamente ao cadastrar manutenções. <span class="text-blue-400">Clique em qualquer item para registrar a troca.</span></p>
                 </div>
                 <span class="text-xs text-slate-400 font-mono" id="componentSpecLabel">EA111 VHT 1.6</span>
             </div>
@@ -168,16 +177,16 @@
                         <i class="fa-solid fa-clock-rotate-left"></i> Histórico (<span id="histCountBadge">0</span>)
                     </button>
                     <button id="tabPlanBtn" onclick="switchMainTab('plan')" class="text-xs px-4 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition">
-                        <i class="fa-solid fa-calendar-check"></i> Plano Previsto
+                        <i class="fa-solid fa-calendar-check"></i> Plano Previsto (<span id="schedCountBadge">0</span>)
                     </button>
                 </div>
 
                 <div class="flex items-center gap-2 w-full md:w-auto">
                     <div class="relative w-full md:w-64">
-                        <input type="text" id="searchInput" placeholder="Buscar por peça, serviço..." oninput="handleSearch(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs px-3 py-1.5 pl-8 text-white focus:outline-none focus:border-blue-500">
+                        <input type="text" id="searchInput" placeholder="Buscar peça, categoria, data..." oninput="handleSearch(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs px-3 py-1.5 pl-8 text-white focus:outline-none focus:border-blue-500">
                         <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs absolute left-2.5 top-2.5"></i>
                     </div>
-                    <button onclick="openModal('realizada')" class="whitespace-nowrap text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 transition">
+                    <button onclick="openModal('realizada')" class="whitespace-nowrap text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 transition shadow">
                         <i class="fa-solid fa-plus"></i> Adicionar
                     </button>
                 </div>
@@ -185,9 +194,13 @@
 
             <!-- Tab 1: Histórico Realizado -->
             <div id="tabHistoryContent" class="space-y-4">
-                <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                <!-- Category Filter Chips -->
+                <div class="flex flex-wrap gap-1.5 items-center pb-1" id="historyCategoryChips">
+                </div>
+
+                <div class="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg border border-slate-800">
                     <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-900/90 text-slate-400 sticky top-0 z-10">
+                        <thead class="bg-slate-900/95 text-slate-400 sticky top-0 z-10 border-b border-slate-800">
                             <tr>
                                 <th class="p-2.5">Data</th>
                                 <th class="p-2.5">Quilometragem</th>
@@ -213,9 +226,9 @@
                     </button>
                 </div>
 
-                <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                <div class="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg border border-slate-800">
                     <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-900/90 text-slate-400 sticky top-0 z-10">
+                        <thead class="bg-slate-900/95 text-slate-400 sticky top-0 z-10 border-b border-slate-800">
                             <tr>
                                 <th class="p-2.5">Período / Ano</th>
                                 <th class="p-2.5">Serviço Programado</th>
@@ -235,11 +248,17 @@
         <!-- Analytics & Costs Breakdown -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-darkcard border border-darkborder p-5 rounded-xl shadow">
-                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-1">
-                    <i class="fa-solid fa-chart-pie text-blue-400"></i> Gastos por Categoria
-                </h3>
-                <p class="text-xs text-slate-400 mb-4">Total investido no veículo ativo</p>
-                <div class="relative h-60 flex items-center justify-center">
+                <div class="flex justify-between items-center mb-1">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-blue-400"></i> Gastos por Categoria
+                    </h3>
+                    <label class="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer hover:text-slate-200">
+                        <input type="checkbox" id="chkIncludePurchaseChart" onchange="updateChart()" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0">
+                        <span>Incluir compra</span>
+                    </label>
+                </div>
+                <p class="text-xs text-slate-400 mb-4" id="chartSubText">Distribuição de despesas em manutenção preventiva e corretiva</p>
+                <div class="relative h-64 flex items-center justify-center">
                     <canvas id="costChart"></canvas>
                 </div>
             </div>
@@ -262,14 +281,14 @@
     </main>
 
     <!-- Modal Form: Add / Edit Maintenance -->
-    <div id="modalForm" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="modalForm" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeModal()">
         <div class="bg-darkcard border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
 
             <h3 class="text-base font-bold text-white flex items-center gap-2" id="modalTitle">
                 <i class="fa-solid fa-wrench text-blue-400"></i> Registrar Nova Manutenção
             </h3>
-            <p class="text-xs text-slate-400 mb-4">Adicione serviços realizados ou agendamentos futuros para atualizar o sistema</p>
+            <p class="text-xs text-slate-400 mb-4" id="modalSub">Adicione serviços realizados ou agendamentos futuros para atualizar o sistema</p>
 
             <form id="maintenanceForm" onsubmit="handleFormSubmit(event)" class="space-y-3.5 text-xs">
                 <input type="hidden" id="editEntryId" value="">
@@ -278,11 +297,11 @@
                     <label class="block text-slate-400 mb-1 font-medium">Tipo de Lançamento</label>
                     <div class="grid grid-cols-2 gap-2">
                         <label class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700 cursor-pointer text-slate-200">
-                            <input type="radio" name="entryType" value="realizada" checked>
+                            <input type="radio" name="entryType" value="realizada" checked onchange="handleEntryTypeChange(this.value)">
                             <span>✅ Já Realizada (Histórico)</span>
                         </label>
                         <label class="flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-700 cursor-pointer text-slate-200">
-                            <input type="radio" name="entryType" value="agendamento">
+                            <input type="radio" name="entryType" value="agendamento" onchange="handleEntryTypeChange(this.value)">
                             <span>📅 Agendamento Futuro</span>
                         </label>
                     </div>
@@ -298,7 +317,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-slate-400 mb-1 font-medium">Quilometragem (KM) <span class="text-rose-400">*</span></label>
-                        <input type="number" id="formKm" required step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500">
+                        <input type="number" id="formKm" required step="1" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-slate-400 mb-1 font-medium">Data <span class="text-rose-400">*</span></label>
@@ -309,7 +328,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-slate-400 mb-1 font-medium">Valor (R$)</label>
-                        <input type="number" step="0.01" id="formValue" placeholder="0,00" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500">
+                        <input type="number" step="0.01" min="0" id="formValue" placeholder="0,00" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-slate-400 mb-1 font-medium">Categoria</label>
@@ -320,7 +339,7 @@
 
                 <div class="pt-3 flex justify-end gap-2 border-t border-slate-700 mt-4">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-1.5 shadow">
+                    <button type="submit" id="modalSubmitBtn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-1.5 shadow">
                         <i class="fa-solid fa-floppy-disk"></i> Salvar no Google Sheets
                     </button>
                 </div>
@@ -328,178 +347,369 @@
         </div>
     </div>
 
+    <!-- Sync Modal Dialog -->
+    <div id="modalSync" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeSyncModal()">
+        <div class="bg-darkcard border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-6 relative">
+            <button onclick="closeSyncModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-cloud"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Sincronização com Google Sheets</h3>
+                    <span class="text-xs text-emerald-400 font-medium">Conexão Ativa via Google Apps Script</span>
+                </div>
+            </div>
+            <div class="bg-slate-900/80 rounded-lg p-3 border border-slate-800 space-y-2 text-xs text-slate-300 my-4">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Veículo Ativo:</span>
+                    <span class="font-bold text-white" id="syncModalVehicle">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Registros em Histórico:</span>
+                    <span class="font-bold text-emerald-400" id="syncModalCount">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Última Sincronização:</span>
+                    <span class="font-mono text-slate-300" id="syncModalTime">-</span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeSyncModal()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Fechar</button>
+                <button onclick="syncWithGoogleSheets(true); closeSyncModal();" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-arrows-rotate"></i> Sincronizar Agora
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-blue-500 text-white px-4 py-3 rounded-lg shadow-xl hidden transition transform duration-300 z-50 text-xs flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-blue-400"></i>
+        <i class="fa-solid fa-circle-check text-blue-400" id="toastIcon"></i>
         <span id="toastMsg">Salvo com sucesso!</span>
     </div>
 
     <script>
-        // Versão da aplicação para invalidar caches antigos automaticamente
-        const APP_BUILD_ID = "v2026_10_29_build2";
+        // Versão da aplicação
+        const APP_BUILD_ID = "v2026_10_30_build4";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
-            localStorage.removeItem('voyage_km');
-            localStorage.removeItem('crosser_km');
+            localStorage.removeItem('voyage_history');
+            localStorage.removeItem('crosser_history');
             localStorage.setItem('app_build_version', APP_BUILD_ID);
         }
 
-        function forcarReset() {
-            if (confirm("Isto irá recarregar todos os dados limpos diretamente da sua folha Google Sheets. Continuar?")) {
-                localStorage.clear();
-                window.location.reload(true);
-            }
-        }
-
+        // Variáveis de Estado
         let currentVehicle = localStorage.getItem('active_vehicle') || 'Voyage';
-        let currentKm = currentVehicle === 'Voyage' ? 104500 : 66250;
+        let currentKm = currentVehicle === 'Voyage' ? 104500 : 72450;
         let currentTab = 'history';
         let currentScheduleFilter = 'ALL';
+        let currentHistoryCategory = 'ALL';
         let currentSearchQuery = '';
+        let includePurchaseInTotal = false;
+        let lastSyncTimestamp = localStorage.getItem('last_sync_time') || null;
         let costChartInstance = null;
-        let googleSheetsUrl = 'https://script.google.com/macros/s/AKfycbxaATZjJgQDhUEprn_JKQQh_NnpfatyHlPlZwcwr5rlA6cjXaZcCCoszWGFH6s6DL_o/exec';
+        const googleSheetsUrl = 'https://script.google.com/macros/s/AKfycbxaATZjJgQDhUEprn_JKQQh_NnpfatyHlPlZwcwr5rlA6cjXaZcCCoszWGFH6s6DL_o/exec';
 
+        // Categorias padrão
+        const ALL_CATEGORIES = [
+            "Motor / Óleo",
+            "Freios",
+            "Filtros",
+            "Correias / Tensor",
+            "Transmissão / Relação",
+            "Embreagem / Câmbio",
+            "Ignição / Elétrica",
+            "Pneus / Suspensão",
+            "Direção Hidráulica",
+            "Sistema GNV",
+            "Aquisição / Doc",
+            "Outros / Estética"
+        ];
+
+        // Configurações e especificações por veículo
         const vehicleConfigs = {
             Voyage: {
                 title: "VW Voyage 1.6 Highline",
                 badge: "EA111 8V",
                 icon: "fa-car",
                 defaultKm: 104500,
-                specLabel: "EA111 VHT 1.6 - VW 502.00",
+                specLabel: "EA111 VHT 1.6 - VW 502.00 5W-40",
                 storageKeyHist: "voyage_history",
                 storageKeySched: "voyage_schedule",
                 storageKeyKm: "voyage_km",
-                categories: ["Motor", "Freios", "Ignição", "Direção", "Injeção", "Arrefecimento", "Transição GNV", "Elétrica", "Outros"],
+                categories: ALL_CATEGORIES,
                 quickChips: [
-                    { label: "Óleo 5W-40 + Filtro", val: "Troca de óleo e filtro" },
-                    { label: "Correia Dentada", val: "Kit correia dentada + tensor" },
-                    { label: "Freio DOT 4", val: "Fluido de freio (DOT 4)" },
-                    { label: "Filtro Combustível", val: "Filtro de combustível" },
-                    { label: "Direção Hidráulica", val: "Fluido da direção hidráulica" }
+                    { label: "Óleo 5W-40 + Filtro", val: "Troca de óleo e filtro de óleo", cat: "Motor / Óleo", valEstimate: 218 },
+                    { label: "Kit Correia Dentada", val: "Kit correia dentada + tensor", cat: "Correias / Tensor", valEstimate: 380 },
+                    { label: "Fluido de Freio DOT 4", val: "Fluido de freio (DOT 4)", cat: "Freios", valEstimate: 50 },
+                    { label: "Filtro de Combustível", val: "Filtro de combustível", cat: "Filtros", valEstimate: 45 },
+                    { label: "Filtro de Ar Motor", val: "Filtro de ar do motor", cat: "Filtros", valEstimate: 25 },
+                    { label: "Fluido Direção Hidr.", val: "Fluido da direção hidráulica", cat: "Direção Hidráulica", valEstimate: 85 }
                 ]
             },
             Crosser: {
                 title: "Yamaha XTZ 150 Crosser",
                 badge: "150cc BlueFlex",
                 icon: "fa-motorcycle",
-                defaultKm: 66250,
+                defaultKm: 72450,
                 specLabel: "Motor 150cc SOHC - Yamalube 20W-50",
                 storageKeyHist: "crosser_history",
                 storageKeySched: "crosser_schedule",
                 storageKeyKm: "crosser_km",
-                categories: ["Motor", "Transmissão", "Freios", "Pneus", "Elétrica", "Suspensão", "Documentação", "Outros"],
+                categories: ALL_CATEGORIES,
                 quickChips: [
-                    { label: "Óleo Yamalube + Filtro", val: "Troca de Óleo e Filtro de Óleo" },
-                    { label: "Ajuste / Lubrif. Relação", val: "Ajuste e Lubrificação da Corrente" },
-                    { label: "Pastilha de Freio", val: "Pastilha de freio dianteira" },
-                    { label: "Patim de Freio Traseiro", val: "Patim de freio traseiro" },
-                    { label: "Pneu Traseiro", val: "Pneu Traseiro" }
+                    { label: "Óleo Yamalube + Filtro", val: "Troca de Óleo e Filtro de Óleo", cat: "Motor / Óleo", valEstimate: 57 },
+                    { label: "Pastilhas / Patim Freio", val: "Pastilha e Patim de Freio", cat: "Freios", valEstimate: 95 },
+                    { label: "Kit Relação (Coroa/Pinhão/Corrente)", val: "Kit de transmissão (relação)", cat: "Transmissão / Relação", valEstimate: 165 },
+                    { label: "Pneu Traseiro 110/90-17", val: "Pneu Traseiro", cat: "Pneus / Suspensão", valEstimate: 220 },
+                    { label: "Vela NGK CPR8EA", val: "Vela de Ignição", cat: "Ignição / Elétrica", valEstimate: 75 }
                 ]
             }
         };
 
-        function getActiveHistory() {
-            const saved = localStorage.getItem(vehicleConfigs[currentVehicle].storageKeyHist);
-            return saved ? JSON.parse(saved) : [];
+        // Cronogramas preventivos padrão recomendados
+        const defaultSchedules = {
+            Voyage: [
+                { id: 1001, year: "2026", title: "Kit Correia Dentada + Tensor (Urgência por tempo >5 anos)", km: 104500, date: "2026-11-15", value: 380, category: "Correias / Tensor", done: false },
+                { id: 1002, year: "2026", title: "Filtro de Combustível (4 anos de uso)", km: 104500, date: "2026-11-20", value: 45, category: "Filtros", done: false },
+                { id: 1003, year: "2026", title: "Revisão 105k: Óleo 5W-40, Freio DOT 4 e Direção Hidráulica", km: 105000, date: "2026-12-10", value: 390, category: "Motor / Óleo", done: false },
+                { id: 1004, year: "2027", title: "Filtro de Ar do Motor e Cabine", km: 110000, date: "2027-06-15", value: 65, category: "Filtros", done: false },
+                { id: 1005, year: "2027", title: "Revisão 115k: Óleo 5W-40 + Filtro de Óleo", km: 115000, date: "2027-12-10", value: 220, category: "Motor / Óleo", done: false },
+                { id: 1006, year: "2028", title: "Revisão 120k: Velas, Cabos, Freios e Alinhamento", km: 120000, date: "2028-10-20", value: 480, category: "Ignição / Elétrica", done: false }
+            ],
+            Crosser: [
+                { id: 2001, year: "2026", title: "Inspeção e Troca de Pastilhas e Patim de Freio", km: 73000, date: "2026-11-10", value: 95, category: "Freios", done: false },
+                { id: 2002, year: "2026", title: "Troca de Óleo Yamalube 20W-50 + Filtro de Óleo (75.000 km)", km: 75000, date: "2026-12-15", value: 57, category: "Motor / Óleo", done: false },
+                { id: 2003, year: "2027", title: "Troca de Óleo Yamalube 20W-50 (77.500 km)", km: 77500, date: "2027-04-10", value: 45, category: "Motor / Óleo", done: false },
+                { id: 2004, year: "2027", title: "Revisão 80k: Óleo, Filtro de Ar, Vela NGK e Lubrificação Relação", km: 80000, date: "2027-08-20", value: 160, category: "Motor / Óleo", done: false },
+                { id: 2005, year: "2027", title: "Kit Relação (Coroa, Pinhão e Corrente c/ Retentor)", km: 84000, date: "2027-12-15", value: 165, category: "Transmissão / Relação", done: false }
+            ]
+        };
+
+        // Classificador inteligente de categorias por palavras-chave
+        function classifyService(service, vehicle) {
+            if (!service) return 'Outros / Estética';
+            const s = service.toLowerCase();
+            
+            if (s.includes('carro') || s.includes('moto') || s.includes('aquisi') || s.includes('compra') || 
+                s.includes('transferência') || s.includes('transferencia') || s.includes('documento') || 
+                s.includes('ipva') || s.includes('licenciamento') || s.includes('dpvat') || s.includes('despachante')) {
+                return 'Aquisição / Doc';
+            }
+            if (s.includes('óleo') || s.includes('oleo') || s.includes('lubrax') || s.includes('yamalube') || 
+                s.includes('cabeçote') || s.includes('cabecote') || s.includes('válvula') || s.includes('valvula') || 
+                s.includes('tbi') || s.includes('junta') || s.includes('cárter') || s.includes('carter')) {
+                return 'Motor / Óleo';
+            }
+            if (s.includes('freio') || s.includes('pastilha') || s.includes('patim') || s.includes('disco') || 
+                s.includes('lona') || s.includes('sangria') || s.includes('dot 4') || s.includes('dot4') || s.includes('fluido de freio')) {
+                return 'Freios';
+            }
+            if (s.includes('correia') || s.includes('tensor') || s.includes('sincronizadora') || s.includes('dentada')) {
+                return 'Correias / Tensor';
+            }
+            if (s.includes('relação') || s.includes('relacao') || s.includes('corrente') || s.includes('pinhão') || 
+                s.includes('pinhao') || s.includes('coroa') || s.includes('esticador') || s.includes('transmissão') || 
+                s.includes('transmissao')) {
+                return 'Transmissão / Relação';
+            }
+            if (s.includes('embreagem') || s.includes('câmbio') || s.includes('cambio') || s.includes('caixa de marcha')) {
+                return vehicle === 'Voyage' ? 'Embreagem / Câmbio' : 'Transmissão / Relação';
+            }
+            if (s.includes('vela') || s.includes('bobina') || s.includes('cabo de vela') || s.includes('ignição') || 
+                s.includes('ignicao') || s.includes('bateria') || s.includes('alternador') || s.includes('lâmpada') || 
+                s.includes('lampada') || s.includes('farol') || s.includes('elétrica') || s.includes('eletrica')) {
+                return 'Ignição / Elétrica';
+            }
+            if (s.includes('filtro de ar') || s.includes('filtro ar') || s.includes('filtro de combustível') || 
+                s.includes('filtro combustivel') || s.includes('filtro de combustivel') || s.includes('filtro comb') || 
+                s.includes('filtro arcond') || s.includes('filtro de ar da cabine') || s.includes('orbiair')) {
+                return 'Filtros';
+            }
+            if (s.includes('pneu') || s.includes('câmara') || s.includes('camara') || s.includes('roda') || 
+                s.includes('calota') || s.includes('alinhamento') || s.includes('balanceamento') || 
+                s.includes('suspensão') || s.includes('suspensao') || s.includes('amortecedor') || 
+                s.includes('mola') || s.includes('bucha') || s.includes('pivô') || s.includes('pivo') || 
+                s.includes('coxim') || s.includes('batente') || s.includes('abs') || s.includes('sensor do abs') || s.includes('sensor de roda')) {
+                return 'Pneus / Suspensão';
+            }
+            if (s.includes('gnv') || s.includes('gás') || s.includes('gas') || s.includes('cilindro') || 
+                s.includes('variador') || s.includes('sonda lambda')) {
+                return 'Sistema GNV';
+            }
+            if (s.includes('direção') || s.includes('direcao')) {
+                return 'Direção Hidráulica';
+            }
+            return 'Outros / Estética';
         }
 
-        function setActiveHistory(data) {
-            localStorage.setItem(vehicleConfigs[currentVehicle].storageKeyHist, JSON.stringify(data));
+        // Obtém a categoria correta para exibição e gráfico
+        function getItemCategory(item, vehicle) {
+            const raw = (item.category || '').trim();
+            if (raw && raw !== 'Manutenção' && raw !== 'Manuteno' && raw !== 'Moto' && raw !== 'Geral') {
+                return raw;
+            }
+            return classifyService(item.service, vehicle);
         }
 
-        function getActiveSchedule() {
-            const saved = localStorage.getItem(vehicleConfigs[currentVehicle].storageKeySched);
-            return saved ? JSON.parse(saved) : [];
+        function isAcquisitionItem(item) {
+            const s = (item.service || '').toLowerCase();
+            const c = (item.category || '').toLowerCase();
+            return s.includes('carro') || s.includes('moto') || s.includes('aquisi') || s.includes('compra') || c.includes('aquisi');
         }
 
-        function setActiveSchedule(data) {
-            localStorage.setItem(vehicleConfigs[currentVehicle].storageKeySched, JSON.stringify(data));
+        // Formatação precisa de datas (evita bug de UTC -1 dia no Brasil)
+        function formatDateBR(dateStr) {
+            if (!dateStr) return '-';
+            const clean = String(dateStr).split('T')[0];
+            const parts = clean.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return clean;
         }
 
-        function getActiveKm() {
-            const saved = localStorage.getItem(vehicleConfigs[currentVehicle].storageKeyKm);
-            return saved ? parseInt(saved) : vehicleConfigs[currentVehicle].defaultKm;
-        }
-
-        function setActiveKm(km) {
-            localStorage.setItem(vehicleConfigs[currentVehicle].storageKeyKm, km);
-        }
-
+        // Cálculo de meses transcorridos sem erros de fuso horário
         function getElapsedMonths(dateStr) {
             if (!dateStr) return 999;
-            const d1 = new Date(dateStr);
+            const clean = String(dateStr).split('T')[0];
+            const parts = clean.split('-');
+            if (parts.length < 3) return 999;
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            const d = parseInt(parts[2], 10);
+            if (isNaN(y) || isNaN(m) || isNaN(d)) return 999;
+            const d1 = new Date(y, m - 1, d);
             const d2 = new Date();
             return Math.max(0, (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth()));
         }
 
-        function getComponentLatest(hist, keywords) {
-            for (let i = hist.length - 1; i >= 0; i--) {
-                const s = hist[i].service.toLowerCase();
-                for (const kw of keywords) {
-                    if (s.includes(kw)) {
-                        return { km: hist[i].km, date: hist[i].date };
+        // Gerenciamento de Dados Locais
+        function getActiveHistory() {
+            const key = vehicleConfigs[currentVehicle].storageKeyHist;
+            const saved = localStorage.getItem(key);
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        function setActiveHistory(data) {
+            const key = vehicleConfigs[currentVehicle].storageKeyHist;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function getActiveSchedule() {
+            const key = vehicleConfigs[currentVehicle].storageKeySched;
+            const saved = localStorage.getItem(key);
+            if (saved) return JSON.parse(saved);
+            // Semeia cronograma preventivo padrão se não existir
+            const def = defaultSchedules[currentVehicle] || [];
+            localStorage.setItem(key, JSON.stringify(def));
+            return def;
+        }
+
+        function setActiveSchedule(data) {
+            const key = vehicleConfigs[currentVehicle].storageKeySched;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function getActiveKm() {
+            const key = vehicleConfigs[currentVehicle].storageKeyKm;
+            const saved = localStorage.getItem(key);
+            return saved ? parseInt(saved, 10) : vehicleConfigs[currentVehicle].defaultKm;
+        }
+
+        function setActiveKm(km) {
+            const key = vehicleConfigs[currentVehicle].storageKeyKm;
+            localStorage.setItem(key, km);
+        }
+
+        // Busca o serviço mais recente em KM real para um componente
+        function getComponentLatest(hist, keywords, excludeKeywords = []) {
+            let latest = null;
+            for (const item of hist) {
+                const s = (item.service || '').toLowerCase();
+                const matches = keywords.some(kw => s.includes(kw.toLowerCase()));
+                const excluded = excludeKeywords.some(ex => s.includes(ex.toLowerCase()));
+                if (matches && !excluded) {
+                    const itemKm = typeof item.km === 'number' ? item.km : parseInt(item.km || 0, 10);
+                    const itemDate = String(item.date || '').split('T')[0];
+                    if (!latest) {
+                        latest = { ...item, km: itemKm, date: itemDate };
+                    } else if (itemKm > latest.km) {
+                        latest = { ...item, km: itemKm, date: itemDate };
+                    } else if (itemKm === latest.km && itemDate > (latest.date || '')) {
+                        latest = { ...item, km: itemKm, date: itemDate };
                     }
                 }
             }
-            return null;
+            return latest;
         }
 
+        // Definição e monitoramento dos componentes com base nos dados reais
         function getComponents() {
             const hist = getActiveHistory();
             if (currentVehicle === 'Voyage') {
-                const oil = getComponentLatest(hist, ['óleo', 'oleo']) || { km: 100600, date: '2025-12-05' };
+                const oil = getComponentLatest(hist, ['óleo', 'oleo'], ['caixa', 'câmbio', 'cambio', 'direção', 'direcao', 'freio', 'diferencial']) || { km: 100600, date: '2025-12-05' };
                 const timingBelt = getComponentLatest(hist, ['correia dentada', 'sincronizadora']) || { km: 70940, date: '2020-04-27' };
-                const fuelFilter = getComponentLatest(hist, ['filtro de combustível', 'filtro combustivel']) || { km: 84000, date: '2022-12-05' };
+                const fuelFilter = getComponentLatest(hist, ['filtro de combustível', 'filtro combustivel', 'filtro de combust', 'filtro comb']) || { km: 84000, date: '2022-12-05' };
                 const brakeFluid = getComponentLatest(hist, ['fluido de freio']) || { km: 96367, date: '2024-12-27' };
                 const psFluid = getComponentLatest(hist, ['direção hidráulica', 'direcao hidraulica']) || { km: 84000, date: '2022-12-05' };
                 const sparkPlugs = getComponentLatest(hist, ['vela']) || { km: 104000, date: '2026-09-07' };
-                const airFilter = getComponentLatest(hist, ['filtro de ar']) || { km: 99170, date: '2025-07-24' };
+                const airFilter = getComponentLatest(hist, ['filtro de ar do motor', 'filtro de ar motor'], ['cabine', 'arcond', 'ar-cond']) || { km: 99170, date: '2025-07-24' };
+                const cabinFilter = getComponentLatest(hist, ['filtro de ar da cabine', 'filtro do arcond', 'arcond']) || { km: 102775, date: '2026-05-16' };
                 const battery = getComponentLatest(hist, ['bateria']) || { km: 101942, date: '2026-01-31' };
 
                 return [
-                    { name: "Correia Dentada + Tensor", lastKm: timingBelt.km, lastDate: timingBelt.date, maxKm: 50000, maxMonths: 48, critical: true },
-                    { name: "Filtro de Combustível", lastKm: fuelFilter.km, lastDate: fuelFilter.date, maxKm: 15000, maxMonths: 24, critical: true },
-                    { name: "Fluido da Direção Hidráulica", lastKm: psFluid.km, lastDate: psFluid.date, maxKm: 40000, maxMonths: 48, critical: false },
-                    { name: "Óleo 5W-40 + Filtro", lastKm: oil.km, lastDate: oil.date, maxKm: 10000, maxMonths: 12, critical: false },
-                    { name: "Fluido de Freio (DOT 4)", lastKm: brakeFluid.km, lastDate: brakeFluid.date, maxKm: 30000, maxMonths: 24, critical: false },
-                    { name: "Filtro de Ar do Motor", lastKm: airFilter.km, lastDate: airFilter.date, maxKm: 15000, maxMonths: 24, critical: false },
-                    { name: "Velas de Ignição", lastKm: sparkPlugs.km, lastDate: sparkPlugs.date, maxKm: 20000, maxMonths: 24, critical: false },
-                    { name: "Bateria (60Ah)", lastKm: battery.km, lastDate: battery.date, maxKm: 50000, maxMonths: 36, critical: false }
+                    { name: "Correia Dentada + Tensor", lastKm: timingBelt.km, lastDate: timingBelt.date, maxKm: 50000, maxMonths: 48, critical: true, category: "Correias / Tensor", suggestedCost: 380 },
+                    { name: "Filtro de Combustível", lastKm: fuelFilter.km, lastDate: fuelFilter.date, maxKm: 15000, maxMonths: 24, critical: true, category: "Filtros", suggestedCost: 45 },
+                    { name: "Óleo 5W-40 + Filtro", lastKm: oil.km, lastDate: oil.date, maxKm: 10000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 218 },
+                    { name: "Fluido da Direção Hidráulica", lastKm: psFluid.km, lastDate: psFluid.date, maxKm: 40000, maxMonths: 48, critical: false, category: "Direção Hidráulica", suggestedCost: 85 },
+                    { name: "Fluido de Freio (DOT 4)", lastKm: brakeFluid.km, lastDate: brakeFluid.date, maxKm: 30000, maxMonths: 24, critical: false, category: "Freios", suggestedCost: 50 },
+                    { name: "Filtro de Ar do Motor", lastKm: airFilter.km, lastDate: airFilter.date, maxKm: 15000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 25 },
+                    { name: "Filtro de Ar da Cabine", lastKm: cabinFilter.km, lastDate: cabinFilter.date, maxKm: 15000, maxMonths: 12, critical: false, category: "Filtros", suggestedCost: 20 },
+                    { name: "Velas de Ignição", lastKm: sparkPlugs.km, lastDate: sparkPlugs.date, maxKm: 20000, maxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 169 },
+                    { name: "Bateria (60Ah)", lastKm: battery.km, lastDate: battery.date, maxKm: 50000, maxMonths: 36, critical: false, category: "Ignição / Elétrica", suggestedCost: 300 }
                 ];
             } else {
-                const oil = getComponentLatest(hist, ['óleo', 'oleo']) || { km: 65530, date: '2025-11-30' };
-                const oilFilter = getComponentLatest(hist, ['filtro de óleo', 'filtro do óleo']) || { km: 65530, date: '2025-11-30' };
-                const relacao = getComponentLatest(hist, ['relação', 'relacao', 'corrente']) || { km: 66250, date: '2026-01-08' };
-                const pneuTraseiro = getComponentLatest(hist, ['pneu traseiro']) || { km: 60300, date: '2025-06-16' };
+                const oil = getComponentLatest(hist, ['óleo', 'oleo']) || { km: 72450, date: '2026-09-07' };
+                const oilFilter = getComponentLatest(hist, ['filtro de óleo', 'filtro do óleo']) || { km: 72450, date: '2026-09-07' };
+                const relacao = getComponentLatest(hist, ['relação', 'relacao', 'corrente', 'kit de transmissão']) || { km: 66250, date: '2026-01-08' };
+                const freio = getComponentLatest(hist, ['pastilha', 'patim', 'freio', 'lona']) || { km: 53600, date: '2024-09-16' };
+                const pneuTraseiro = getComponentLatest(hist, ['pneu traseiro']) || { km: 65100, date: '2025-11-13' };
                 const pneuDianteiro = getComponentLatest(hist, ['pneu dianteiro']) || { km: 65100, date: '2025-11-13' };
-                const freio = getComponentLatest(hist, ['pastilha', 'patim']) || { km: 53600, date: '2024-09-16' };
-                const vela = getComponentLatest(hist, ['vela']) || { km: 61050, date: '2025-07-07' };
-                const filtroAr = getComponentLatest(hist, ['filtro de ar']) || { km: 61050, date: '2025-07-07' };
+                const vela = getComponentLatest(hist, ['vela']) || { km: 69675, date: '2026-06-06' };
+                const filtroAr = getComponentLatest(hist, ['filtro de ar']) || { km: 67400, date: '2026-03-03' };
+                const filtroComb = getComponentLatest(hist, ['filtro de combustível', 'filtro combustivel']) || { km: 67400, date: '2026-03-03' };
 
                 return [
-                    { name: "Óleo do Motor (Yamalube)", lastKm: oil.km, lastDate: oil.date, maxKm: 2500, maxMonths: 6, critical: true },
-                    { name: "Filtro de Óleo", lastKm: oilFilter.km, lastDate: oilFilter.date, maxKm: 5000, maxMonths: 12, critical: false },
-                    { name: "Pastilhas e Patim de Freio", lastKm: freio.km, lastDate: freio.date, maxKm: 12000, maxMonths: 24, critical: true },
-                    { name: "Kit de Relação (Coroa/Pinhão/Corrente)", lastKm: relacao.km, lastDate: relacao.date, maxKm: 18000, maxMonths: 36, critical: false },
-                    { name: "Pneu Traseiro (110/90-17)", lastKm: pneuTraseiro.km, lastDate: pneuTraseiro.date, maxKm: 12000, maxMonths: 36, critical: false },
-                    { name: "Pneu Dianteiro (90/90-19)", lastKm: pneuDianteiro.km, lastDate: pneuDianteiro.date, maxKm: 20000, maxMonths: 48, critical: false },
-                    { name: "Vela de Ignição (NGK CPR8EA)", lastKm: vela.km, lastDate: vela.date, maxKm: 10000, maxMonths: 24, critical: false },
-                    { name: "Filtro de Ar do Motor", lastKm: filtroAr.km, lastDate: filtroAr.date, maxKm: 10000, maxMonths: 24, critical: false }
+                    { name: "Pastilhas e Patim de Freio", lastKm: freio.km, lastDate: freio.date, maxKm: 12000, maxMonths: 24, critical: true, category: "Freios", suggestedCost: 95 },
+                    { name: "Óleo do Motor (Yamalube 20W-50)", lastKm: oil.km, lastDate: oil.date, maxKm: 2500, maxMonths: 6, critical: true, category: "Motor / Óleo", suggestedCost: 45 },
+                    { name: "Filtro de Óleo", lastKm: oilFilter.km, lastDate: oilFilter.date, maxKm: 5000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 15 },
+                    { name: "Kit de Relação (Coroa/Pinhão/Corrente)", lastKm: relacao.km, lastDate: relacao.date, maxKm: 18000, maxMonths: 36, critical: false, category: "Transmissão / Relação", suggestedCost: 165 },
+                    { name: "Pneu Traseiro (110/90-17)", lastKm: pneuTraseiro.km, lastDate: pneuTraseiro.date, maxKm: 12000, maxMonths: 36, critical: false, category: "Pneus / Suspensão", suggestedCost: 220 },
+                    { name: "Pneu Dianteiro (90/90-19)", lastKm: pneuDianteiro.km, lastDate: pneuDianteiro.date, maxKm: 20000, maxMonths: 48, critical: false, category: "Pneus / Suspensão", suggestedCost: 200 },
+                    { name: "Vela de Ignição (NGK CPR8EA)", lastKm: vela.km, lastDate: vela.date, maxKm: 10000, maxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 75 },
+                    { name: "Filtro de Ar do Motor", lastKm: filtroAr.km, lastDate: filtroAr.date, maxKm: 10000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 35 },
+                    { name: "Filtro de Combustível", lastKm: filtroComb.km, lastDate: filtroComb.date, maxKm: 15000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 25 }
                 ];
             }
         }
 
+        // Cálculo de desgaste considerando KM e Tempo
         function calculateWear(comp) {
             const kmWear = (currentKm - comp.lastKm) / comp.maxKm;
             const monthsWear = getElapsedMonths(comp.lastDate) / comp.maxMonths;
             const wear = Math.max(kmWear, monthsWear);
+            if (isNaN(wear)) return 0;
             return Math.min(Math.round(wear * 100), 100);
         }
 
+        // Renderização dos cards de vida útil
         function renderComponents() {
             const comps = getComponents();
             const grid = document.getElementById('componentsGrid');
             grid.innerHTML = '';
             let critCount = 0;
+            const critNames = [];
 
             comps.forEach(c => {
                 const wear = calculateWear(c);
@@ -514,7 +724,8 @@
                     badgeColor = "bg-rose-500/20 text-rose-400 border-rose-500/30";
                     barColor = "bg-rose-500";
                     statusText = "Vencido / Trocar";
-                    if (c.critical) critCount++;
+                    critCount++;
+                    critNames.push(c.name.split(' ')[0]);
                 } else if (wear >= 75) {
                     badgeColor = "bg-amber-500/20 text-amber-400 border-amber-500/30";
                     barColor = "bg-amber-500";
@@ -522,12 +733,17 @@
                 }
 
                 grid.innerHTML += `
-                    <div class="bg-slate-900/60 border border-slate-700/60 p-3.5 rounded-lg flex flex-col justify-between">
+                    <div onclick="openModalWithService('${c.name}', ${c.suggestedCost || 0}, '${c.category}')" 
+                         title="Clique para registrar a troca de ${c.name}"
+                         class="bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 hover:border-blue-500/60 p-3.5 rounded-lg flex flex-col justify-between cursor-pointer transition group">
                         <div>
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h4 class="text-xs font-bold text-white">${c.name}</h4>
-                                    <span class="text-[10px] text-slate-400">Última troca: ${c.lastKm.toLocaleString('pt-BR')} km (${c.lastDate ? new Date(c.lastDate).toLocaleDateString('pt-BR') : '-'})</span>
+                                    <h4 class="text-xs font-bold text-white group-hover:text-blue-400 transition flex items-center gap-1.5">
+                                        <span>${c.name}</span>
+                                        <i class="fa-solid fa-plus text-[10px] opacity-0 group-hover:opacity-100 transition text-blue-400"></i>
+                                    </h4>
+                                    <span class="text-[10px] text-slate-400">Última troca: ${c.lastKm.toLocaleString('pt-BR')} km (${formatDateBR(c.lastDate)})</span>
                                 </div>
                                 <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColor}">${statusText}</span>
                             </div>
@@ -537,44 +753,88 @@
                         </div>
                         <div class="flex justify-between items-center text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-800">
                             <span>Rodados: <b class="text-slate-200">${kmDriven.toLocaleString('pt-BR')} km</b> / ${c.maxKm.toLocaleString('pt-BR')} km</span>
-                            <span>Tempo: <b class="text-slate-200">${months} meses</b> / ${c.maxMonths}m</span>
+                            <span>Tempo: <b class="text-slate-200">${months}m</b> / ${c.maxMonths}m</span>
                         </div>
                     </div>
                 `;
             });
 
             document.getElementById('criticalCount').innerText = critCount;
-            if (currentVehicle === 'Voyage') {
-                document.getElementById('criticalSummary').innerText = "Correia Dentada (>5 anos) & Filtro Comb.";
+            const critSummaryEl = document.getElementById('criticalSummary');
+            if (critCount > 0) {
+                critSummaryEl.innerText = `${critCount} item(ns) exigem atenção: ${critNames.slice(0, 2).join(', ')}`;
             } else {
-                document.getElementById('criticalSummary').innerText = critCount > 0 ? "Pastilhas/Lona de freio e óleo em atenção" : "Itens de segurança em dia";
+                critSummaryEl.innerText = "Nenhuma pendência crítica imediata";
             }
         }
 
+        // Renderização do Banner Dinâmico e Dicas Técnicas
         function renderBannerAndTips() {
             const banner = document.getElementById('vehicleBanner');
             const tipsTitle = document.getElementById('tipsTitle');
             const tipsSub = document.getElementById('tipsSub');
             const tipsList = document.getElementById('tipsList');
-            const hist = getActiveHistory();
 
-            if (currentVehicle === 'Voyage') {
+            const comps = getComponents();
+            const criticals = comps.filter(c => calculateWear(c) >= 95);
+            const attentions = comps.filter(c => calculateWear(c) >= 75 && calculateWear(c) < 95);
+
+            if (criticals.length > 0) {
+                const primary = criticals[0];
+                const names = criticals.map(c => c.name).slice(0, 2).join(' e ');
                 banner.className = "bg-gradient-to-r from-red-950/80 to-slate-900 border-l-4 border-red-500 p-4 rounded-xl border border-red-900/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all";
                 banner.innerHTML = `
                     <div class="flex items-start gap-3">
-                        <div class="text-red-400 text-2xl mt-0.5"><i class="fa-solid fa-circle-exclamation"></i></div>
+                        <div class="text-red-400 text-2xl mt-0.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div>
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Atenção Prioritária: Motor EA111</h3>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Atenção Prioritária: ${names}</h3>
                             <p class="text-xs text-slate-300 mt-0.5">
-                                A correia dentada já ultrapassou a janela temporal de segurança (4 a 5 anos). No motor 1.6 EA111, a quebra causa colisão severa de válvulas. O filtro de combustível também está com 4 anos de uso (última troca aos 84.000 km).
+                                Detectamos ${criticals.length} item(ns) com prazo limite de quilometragem ou tempo atingido. Substitua para garantir segurança e durabilidade.
                             </p>
                         </div>
                     </div>
-                    <button onclick="openModalWithService('Kit correia dentada + tensor', 380, 'Motor')" class="whitespace-nowrap text-xs bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg transition shadow">
-                        Registrar Troca da Correia
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <button onclick="openModalWithService('${primary.name}', ${primary.suggestedCost || 0}, '${primary.category || 'Motor'}')" class="whitespace-nowrap text-xs bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg transition shadow">
+                            Registrar ${primary.name.split(' ')[0]}
+                        </button>
+                    </div>
+                `;
+            } else if (attentions.length > 0) {
+                const primary = attentions[0];
+                banner.className = "bg-gradient-to-r from-amber-950/80 to-slate-900 border-l-4 border-amber-500 p-4 rounded-xl border border-amber-900/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all";
+                banner.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="text-amber-400 text-2xl mt-0.5"><i class="fa-solid fa-circle-exclamation"></i></div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Atenção Preventiva: ${primary.name}</h3>
+                            <p class="text-xs text-slate-300 mt-0.5">
+                                Este componente já atingiu mais de 75% da vida útil estimada. Programe a revisão em breve.
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="openModalWithService('${primary.name}', ${primary.suggestedCost || 0}, '${primary.category || 'Motor'}')" class="whitespace-nowrap text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition shadow">
+                        Adicionar Agendamento
                     </button>
                 `;
+            } else {
+                banner.className = "bg-gradient-to-r from-emerald-950/80 to-slate-900 border-l-4 border-emerald-500 p-4 rounded-xl border border-emerald-900/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all";
+                banner.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="text-emerald-400 text-2xl mt-0.5"><i class="fa-solid fa-shield-heart"></i></div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Tudo em Dia! Garagem Sob Controle</h3>
+                            <p class="text-xs text-slate-300 mt-0.5">
+                                Todos os componentes monitorados estão dentro da margem de quilometragem e tempo seguros.
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="openModal('realizada')" class="whitespace-nowrap text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg transition">
+                        + Nova Manutenção
+                    </button>
+                `;
+            }
 
+            if (currentVehicle === 'Voyage') {
                 tipsTitle.innerHTML = '<i class="fa-solid fa-shield-halved text-blue-400"></i> Segredos de Durabilidade do Voyage EA111';
                 tipsSub.innerText = 'Recomendações técnicas baseadas no histórico do seu motor';
                 tipsList.innerHTML = `
@@ -586,128 +846,223 @@
                         <i class="fa-solid fa-check-circle text-blue-400 mt-0.5"></i>
                         <div><b>Correia Dentada por Tempo:</b> Mesmo rodando pouco (~5.000 km/ano), a borracha oxida aos 4-5 anos.</div>
                     </li>
+                    <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded border border-slate-800">
+                        <i class="fa-solid fa-check-circle text-blue-400 mt-0.5"></i>
+                        <div><b>Sistema GNV:</b> Realizar regulagem e verificar velas a cada 15.000 km para proteger as bobinas.</div>
+                    </li>
                 `;
             } else {
-                const lastFreio = getComponentLatest(hist, ['pastilha', 'patim', 'freio']) || { km: 53600, date: '2024-09-16' };
-                const kmDesdeFreio = currentKm - lastFreio.km;
-                const lastOleo = getComponentLatest(hist, ['óleo', 'oleo']) || { km: 65530, date: '2025-11-30' };
-                const kmDesdeOleo = currentKm - lastOleo.km;
-
-                banner.className = "bg-gradient-to-r from-amber-950/80 to-slate-900 border-l-4 border-amber-500 p-4 rounded-xl border border-amber-900/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all";
-                banner.innerHTML = `
-                    <div class="flex items-start gap-3">
-                        <div class="text-amber-400 text-2xl mt-0.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <div>
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Manutenção Pendente: Freios e Nível de Óleo</h3>
-                            <p class="text-xs text-slate-300 mt-0.5">
-                                As pastilhas e patim de freio rodaram <b>${kmDesdeFreio.toLocaleString('pt-BR')} km</b> desde a troca aos 53.600 km e requerem inspeção. O óleo atual já rodou <b>${kmDesdeOleo.toLocaleString('pt-BR')} km</b>.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap sm:flex-nowrap gap-2 w-full md:w-auto">
-                        <button onclick="openModalWithService('Pastilha e Patim de Freio', 70, 'Freios')" class="whitespace-nowrap text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold px-3 py-2 rounded-lg transition shadow">
-                            Registrar Freios
-                        </button>
-                        <button onclick="openModalWithService('Troca de Óleo e Filtro de Óleo', 55, 'Motor')" class="whitespace-nowrap text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-3 py-2 rounded-lg transition shadow">
-                            Registrar Óleo
-                        </button>
-                    </div>
-                `;
-
                 tipsTitle.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400"></i> Segredos de Durabilidade da Yamaha Crosser';
                 tipsSub.innerText = 'Diretrizes essenciais para o motor BlueFlex 150cc';
                 tipsList.innerHTML = `
                     <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded border border-slate-800">
                         <i class="fa-solid fa-check-circle text-amber-400 mt-0.5"></i>
-                        <div><b>Nível de Óleo Motor:</b> Verificar a vareta semanalmente e trocar entre 2.500 e 3.000 km.</div>
+                        <div><b>Nível de Óleo Motor:</b> Verificar a vareta semanalmente e trocar entre 2.500 e 3.000 km com Yamalube 20W-50.</div>
                     </li>
                     <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded border border-slate-800">
                         <i class="fa-solid fa-check-circle text-amber-400 mt-0.5"></i>
-                        <div><b>Tensão e Lubrificação da Corrente:</b> Lubrificar a cada 500 km ou após chuva intensa.</div>
+                        <div><b>Tensão e Lubrificação da Corrente:</b> Lubrificar a cada 500 km ou após chuva intensa; folga 25-35mm.</div>
+                    </li>
+                    <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded border border-slate-800">
+                        <i class="fa-solid fa-check-circle text-amber-400 mt-0.5"></i>
+                        <div><b>Pastilhas e Patim:</b> Verificar a cada 3.000 km para prevenir desgaste e ranhuras no disco dianteiro.</div>
                     </li>
                 `;
             }
         }
 
+        // Atualização dinâmica do Card "Próxima Revisão"
+        function updateNextReviewCard() {
+            const sched = getActiveSchedule().filter(s => !s.done && (s.km >= currentKm || !s.km)).sort((a,b) => (a.km || 0) - (b.km || 0));
+            const titleEl = document.getElementById('nextReviewTitle');
+            const detailEl = document.getElementById('nextReviewDetail');
+            const estEl = document.getElementById('nextReviewEstimate');
+
+            if (sched.length > 0) {
+                const next = sched[0];
+                const dateStr = next.date ? formatDateBR(next.date) : next.year;
+                titleEl.innerText = `${(next.km || currentKm).toLocaleString('pt-BR')} km (${dateStr})`;
+                detailEl.innerText = next.title;
+                const diff = (next.km || currentKm) - currentKm;
+                estEl.innerText = diff > 0 
+                    ? `Faltam aproximadamente ${diff.toLocaleString('pt-BR')} km` 
+                    : `Meta atingida no odômetro atual!`;
+            } else {
+                const comps = getComponents().sort((a,b) => calculateWear(b) - calculateWear(a));
+                if (comps.length > 0) {
+                    const worst = comps[0];
+                    const kmRemain = Math.max(0, worst.maxKm - (currentKm - worst.lastKm));
+                    titleEl.innerText = worst.name;
+                    detailEl.innerText = `Desgaste: ${calculateWear(worst)}% (Última: ${worst.lastKm.toLocaleString('pt-BR')} km)`;
+                    estEl.innerText = kmRemain > 0 ? `Substituição prevista em ~${kmRemain.toLocaleString('pt-BR')} km` : `Troca imediata recomendada!`;
+                }
+            }
+        }
+
+        // Alterna inclusão do valor de compra no cálculo do total
+        function togglePurchaseInTotal() {
+            includePurchaseInTotal = !includePurchaseInTotal;
+            const btn = document.getElementById('btnTogglePurchase');
+            btn.innerText = includePurchaseInTotal ? 'Com Compra' : 'Sem Compra';
+            renderHistoryTable();
+        }
+
+        // Renderização dos Chips de Categorias da Tabela de Histórico
+        function renderHistoryCategoryChips() {
+            const container = document.getElementById('historyCategoryChips');
+            if (!container) return;
+            const chips = ['ALL', 'Motor / Óleo', 'Freios', 'Filtros', 'Correias / Tensor', 'Transmissão / Relação', 'Ignição / Elétrica', 'Pneus / Suspensão', 'Outros / Estética'];
+            container.innerHTML = '';
+            chips.forEach(c => {
+                const label = c === 'ALL' ? 'Todos' : c.split('/')[0].trim();
+                const active = currentHistoryCategory === c 
+                    ? 'bg-blue-600 text-white font-bold' 
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700';
+                container.innerHTML += `<button onclick="filterHistoryCategory('${c}')" class="text-[11px] px-2.5 py-1 rounded-full border border-slate-700 transition ${active}">${label}</button>`;
+            });
+        }
+
+        function filterHistoryCategory(cat) {
+            currentHistoryCategory = cat;
+            renderHistoryCategoryChips();
+            renderHistoryTable();
+        }
+
+        // Renderização da Tabela de Histórico Realizado
         function renderHistoryTable() {
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '';
             const hist = getActiveHistory();
 
-            let list = [...hist].reverse();
-            if (currentSearchQuery) {
-                list = list.filter(h => h.service.toLowerCase().includes(currentSearchQuery.toLowerCase()));
-            }
+            let maintenanceTotal = 0;
+            let acquisitionTotal = 0;
 
-            list.forEach(item => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/50 transition">
-                        <td class="p-2.5 font-mono text-[11px] text-slate-400">${item.date ? new Date(item.date).toLocaleDateString('pt-BR') : '-'}</td>
-                        <td class="p-2.5 font-mono text-[11px] text-blue-400 font-bold">${item.km.toLocaleString('pt-BR')} km</td>
-                        <td class="p-2.5 font-semibold text-slate-100">${item.service}</td>
-                        <td class="p-2.5"><span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${item.category || currentVehicle}</span></td>
-                        <td class="p-2.5 font-bold text-right text-emerald-400">R$ ${(item.value || 0).toFixed(2).replace('.', ',')}</td>
-                        <td class="p-2.5 text-center">
-                            <button onclick="deleteHistoryItem('${item.id}')" title="Excluir lançamento" class="text-slate-500 hover:text-rose-400 p-1 transition">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+            hist.forEach(h => {
+                const isAcq = isAcquisitionItem(h);
+                const val = typeof h.value === 'number' ? h.value : (parseFloat(h.value) || 0);
+                if (isAcq) acquisitionTotal += val;
+                else maintenanceTotal += val;
             });
 
+            const displayedTotal = includePurchaseInTotal ? (maintenanceTotal + acquisitionTotal) : maintenanceTotal;
+            document.getElementById('totalHistoryCost').innerText = `R$ ${displayedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('totalHistoryCount').innerText = `${hist.length} registros cadastrados`;
+            document.getElementById('totalHistorySub').innerHTML = includePurchaseInTotal
+                ? `Manutenção: R$ ${maintenanceTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} | Compra: R$ ${acquisitionTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                : `Total em peças e serviços (clique acima para incluir compra)`;
+
+            let list = [...hist].reverse();
+
+            if (currentHistoryCategory !== 'ALL') {
+                list = list.filter(h => getItemCategory(h, currentVehicle) === currentHistoryCategory);
+            }
+
+            if (currentSearchQuery) {
+                const q = currentSearchQuery.toLowerCase();
+                list = list.filter(h => {
+                    const cat = getItemCategory(h, currentVehicle).toLowerCase();
+                    const s = (h.service || '').toLowerCase();
+                    const d = formatDateBR(h.date).toLowerCase();
+                    const km = String(h.km || '');
+                    const val = String(h.value || '');
+                    return s.includes(q) || cat.includes(q) || d.includes(q) || km.includes(q) || val.includes(q);
+                });
+            }
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Nenhum registro encontrado para este filtro.</td></tr>`;
+            } else {
+                list.forEach(item => {
+                    const resolvedCat = getItemCategory(item, currentVehicle);
+                    const isAcq = isAcquisitionItem(item);
+                    const badgeClass = isAcq ? "bg-amber-950/40 text-amber-300 border border-amber-800/40" : "bg-slate-800 text-slate-300";
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/50 transition">
+                            <td class="p-2.5 font-mono text-[11px] text-slate-400 whitespace-nowrap">${formatDateBR(item.date)}</td>
+                            <td class="p-2.5 font-mono text-[11px] text-blue-400 font-bold whitespace-nowrap">${(item.km || 0).toLocaleString('pt-BR')} km</td>
+                            <td class="p-2.5 font-semibold text-slate-100">${item.service}</td>
+                            <td class="p-2.5 whitespace-nowrap"><span class="${badgeClass} px-2 py-0.5 rounded text-[10px]">${resolvedCat}</span></td>
+                            <td class="p-2.5 font-bold text-right text-emerald-400 whitespace-nowrap">R$ ${(item.value || 0).toFixed(2).replace('.', ',')}</td>
+                            <td class="p-2.5 text-center whitespace-nowrap">
+                                <button onclick="editHistoryItem('${item.id}')" title="Editar lançamento" class="text-slate-400 hover:text-blue-400 p-1 mr-1 transition">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteHistoryItem('${item.id}')" title="Excluir lançamento" class="text-slate-500 hover:text-rose-400 p-1 transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
             document.getElementById('histCountBadge').innerText = hist.length;
-            document.getElementById('totalHistoryCount').innerText = `${hist.length} registros`;
-            document.getElementById('totalHistorySub').innerText = currentVehicle === 'Voyage' ? "Desde aquisição aos 70.940 km" : "Histórico desde 2018 aos 10.200 km";
-            
-            const grandTotal = hist.reduce((acc, cur) => acc + (cur.value || 0), 0);
-            document.getElementById('totalHistoryCost').innerText = `R$ ${grandTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         }
 
+        // Renderização da Tabela de Cronograma Futuro
         function renderScheduleTable() {
             const tbody = document.getElementById('scheduleTableBody');
             tbody.innerHTML = '';
             const sched = getActiveSchedule();
 
             const yearFilters = document.getElementById('yearFilters');
-            const years = ['ALL', ...new Set(sched.map(s => s.year))].sort();
+            const years = ['ALL', ...new Set(sched.map(s => String(s.year || '2026')))].sort();
             yearFilters.innerHTML = '';
             years.forEach(y => {
                 const label = y === 'ALL' ? 'Todos' : y;
                 const active = (currentScheduleFilter === y) ? 'bg-blue-600 text-white font-medium' : 'bg-slate-800 text-slate-300 hover:bg-slate-700';
-                yearFilters.innerHTML += `<button onclick="filterScheduleYear('${y}')" class="text-xs px-2.5 py-1 rounded ${active}">${label}</button>`;
+                yearFilters.innerHTML += `<button onclick="filterScheduleYear('${y}')" class="text-xs px-2.5 py-1 rounded transition ${active}">${label}</button>`;
             });
 
-            let list = sched;
+            let list = [...sched].sort((a,b) => (a.km || 0) - (b.km || 0));
             if (currentScheduleFilter !== 'ALL') {
-                list = list.filter(s => s.year === currentScheduleFilter);
+                list = list.filter(s => String(s.year) === currentScheduleFilter);
             }
             if (currentSearchQuery) {
-                list = list.filter(s => s.title.toLowerCase().includes(currentSearchQuery.toLowerCase()));
+                const q = currentSearchQuery.toLowerCase();
+                list = list.filter(s => {
+                    const t = (s.title || '').toLowerCase();
+                    const c = (s.category || '').toLowerCase();
+                    const d = formatDateBR(s.date).toLowerCase();
+                    return t.includes(q) || c.includes(q) || d.includes(q);
+                });
             }
 
-            list.forEach(s => {
-                const trClass = s.done ? 'bg-emerald-950/20 line-through text-slate-500' : 'hover:bg-slate-800/50';
-                tbody.innerHTML += `
-                    <tr class="${trClass} transition">
-                        <td class="p-2.5 font-mono text-[11px] text-slate-400">${s.year}</td>
-                        <td class="p-2.5 font-semibold text-slate-200">${s.title}</td>
-                        <td class="p-2.5 font-mono text-[11px] text-blue-400 font-bold">${s.km.toLocaleString('pt-BR')} km</td>
-                        <td class="p-2.5 font-mono text-[11px]">${s.date ? new Date(s.date).toLocaleDateString('pt-BR') : '-'}</td>
-                        <td class="p-2.5 font-bold text-right text-slate-200">R$ ${s.value.toFixed(2).replace('.', ',')}</td>
-                        <td class="p-2.5 text-center flex items-center justify-center gap-2">
-                            <button onclick="completeScheduleItem(${s.id})" title="Marcar como realizada" class="text-xs bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white px-2 py-1 rounded border border-emerald-500/40 transition flex items-center gap-1">
-                                <i class="fa-solid fa-check"></i> Concluir
-                            </button>
-                            <button onclick="deleteScheduleItem(${s.id})" title="Excluir do cronograma" class="text-slate-500 hover:text-rose-400 p-1">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Nenhum agendamento programado para este filtro.</td></tr>`;
+            } else {
+                list.forEach(s => {
+                    const trClass = s.done ? 'bg-emerald-950/20 line-through text-slate-500' : 'hover:bg-slate-800/50';
+                    tbody.innerHTML += `
+                        <tr class="${trClass} transition">
+                            <td class="p-2.5 font-mono text-[11px] text-slate-400">${s.year || '-'}</td>
+                            <td class="p-2.5 font-semibold text-slate-200">
+                                <div>${s.title}</div>
+                                <span class="text-[10px] text-slate-500 font-mono">${s.category || ''}</span>
+                            </td>
+                            <td class="p-2.5 font-mono text-[11px] text-blue-400 font-bold">${(s.km || 0).toLocaleString('pt-BR')} km</td>
+                            <td class="p-2.5 font-mono text-[11px]">${formatDateBR(s.date)}</td>
+                            <td class="p-2.5 font-bold text-right text-slate-200">R$ ${(s.value || 0).toFixed(2).replace('.', ',')}</td>
+                            <td class="p-2.5 text-center flex items-center justify-center gap-1.5">
+                                <button onclick="completeScheduleItem('${s.id}')" title="Marcar como realizada e gravar" class="text-xs bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white px-2 py-1 rounded border border-emerald-500/40 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-check"></i> Concluir
+                                </button>
+                                <button onclick="editScheduleItem('${s.id}')" title="Editar agendamento" class="text-slate-400 hover:text-blue-400 p-1">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteScheduleItem('${s.id}')" title="Excluir do cronograma" class="text-slate-500 hover:text-rose-400 p-1">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('schedCountBadge').innerText = sched.filter(s => !s.done).length;
         }
 
+        // Alternância de Veículo Ativo
         function switchVehicle(v) {
             currentVehicle = v;
             localStorage.setItem('active_vehicle', v);
@@ -719,29 +1074,22 @@
             document.getElementById('vehicleIcon').className = `fa-solid ${cfg.icon}`;
             document.getElementById('vehicleIconBox').className = v === 'Voyage' ? "w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl shadow-md transition-colors" : "w-10 h-10 rounded-lg bg-amber-600 flex items-center justify-center text-white text-xl shadow-md transition-colors";
 
-            document.getElementById('btnSwitchVoyage').className = v === 'Voyage' ? "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-600 text-white transition flex items-center gap-1" : "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1";
-            document.getElementById('btnSwitchCrosser').className = v === 'Crosser' ? "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-600 text-white transition flex items-center gap-1" : "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1";
+            document.getElementById('btnSwitchVoyage').className = v === 'Voyage' ? "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-600 text-white transition flex items-center gap-1 shadow-sm" : "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1 shadow-sm";
+            document.getElementById('btnSwitchCrosser').className = v === 'Crosser' ? "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-600 text-white transition flex items-center gap-1 shadow-sm" : "text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1 shadow-sm";
 
             document.getElementById('componentSpecLabel').innerText = cfg.specLabel;
 
             currentKm = getActiveKm();
             document.getElementById('inputKm').value = currentKm;
 
-            if (v === 'Voyage') {
-                document.getElementById('nextReviewTitle').innerText = "Dezembro / 2026";
-                document.getElementById('nextReviewDetail').innerText = "Óleo 5W-40, Freio DOT4 e DH";
-                document.getElementById('nextReviewEstimate').innerText = "Estimativa: ~105.000 km";
-            } else {
-                document.getElementById('nextReviewTitle').innerText = "Novembro / 2026";
-                document.getElementById('nextReviewDetail').innerText = "Óleo Yamalube + Filtro";
-                document.getElementById('nextReviewEstimate').innerText = "Estimativa: ~68.000 km";
-            }
-
             currentScheduleFilter = 'ALL';
+            currentHistoryCategory = 'ALL';
+            renderHistoryCategoryChips();
             renderBannerAndTips();
             renderComponents();
             renderHistoryTable();
             renderScheduleTable();
+            updateNextReviewCard();
             updateChart();
 
             syncWithGoogleSheets(false);
@@ -759,11 +1107,13 @@
                 planBtn.className = "text-xs px-4 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition";
                 histCont.classList.remove('hidden');
                 planCont.classList.add('hidden');
+                renderHistoryTable();
             } else {
                 planBtn.className = "text-xs px-4 py-2 rounded-lg font-bold bg-blue-600 text-white flex items-center gap-2 transition";
                 histBtn.className = "text-xs px-4 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition";
                 planCont.classList.remove('hidden');
                 histCont.classList.add('hidden');
+                renderScheduleTable();
             }
         }
 
@@ -779,15 +1129,16 @@
         }
 
         function updateOdometer(val) {
-            const parsed = parseInt(val);
-            if (isNaN(parsed) || parsed <= 0) return;
+            const parsed = parseInt(val, 10);
+            if (isNaN(parsed) || parsed < 0) return;
             currentKm = parsed;
             setActiveKm(currentKm);
             renderComponents();
             renderBannerAndTips();
+            updateNextReviewCard();
             renderScheduleTable();
             const inp = document.getElementById('inputKm');
-            if (inp && parseInt(inp.value) !== currentKm) {
+            if (inp && parseInt(inp.value, 10) !== currentKm) {
                 inp.value = currentKm;
             }
         }
@@ -805,15 +1156,18 @@
             setTimeout(() => { t.classList.add('hidden'); }, 3000);
         }
 
+        // Controle e Abertura de Modais
         function openModal(type = 'realizada') {
             const cfg = vehicleConfigs[currentVehicle];
             document.getElementById('modalForm').classList.remove('hidden');
+            document.getElementById('editEntryId').value = '';
             document.querySelector(`input[name="entryType"][value="${type}"]`).checked = true;
             document.getElementById('formKm').value = currentKm;
             document.getElementById('formDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('formService').value = '';
             document.getElementById('formValue').value = '';
-            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid ${cfg.icon} text-blue-400"></i> Nova Manutenção (${cfg.title})`;
+            
+            handleEntryTypeChange(type);
 
             const catSelect = document.getElementById('formCategory');
             catSelect.innerHTML = '';
@@ -824,111 +1178,210 @@
             const chips = document.getElementById('formQuickChips');
             chips.innerHTML = '';
             cfg.quickChips.forEach(ch => {
-                chips.innerHTML += `<button type="button" onclick="setQuickService('${ch.val}')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">${ch.label}</button>`;
+                chips.innerHTML += `<button type="button" onclick="setQuickService('${ch.val}', '${ch.cat}', ${ch.valEstimate || 0})" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">${ch.label}</button>`;
             });
+        }
+
+        function handleEntryTypeChange(type) {
+            const cfg = vehicleConfigs[currentVehicle];
+            const isEdit = Boolean(document.getElementById('editEntryId').value);
+            const submitBtn = document.getElementById('modalSubmitBtn');
+            const titleEl = document.getElementById('modalTitle');
+            const subEl = document.getElementById('modalSub');
+
+            if (type === 'realizada') {
+                titleEl.innerHTML = `<i class="fa-solid ${cfg.icon} text-blue-400"></i> ${isEdit ? 'Editar' : 'Registrar'} Manutenção (${cfg.title})`;
+                subEl.innerText = 'Lançamento de serviço já concluído com sincronização com o Google Sheets';
+                submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${isEdit ? 'Atualizar Histórico' : 'Salvar no Google Sheets'}`;
+            } else {
+                titleEl.innerHTML = `<i class="fa-solid fa-calendar-plus text-amber-400"></i> ${isEdit ? 'Editar' : 'Programar'} Agendamento (${cfg.title})`;
+                subEl.innerText = 'Planejamento preventivo armazenado no cronograma do seu veículo';
+                submitBtn.innerHTML = `<i class="fa-solid fa-calendar-check"></i> ${isEdit ? 'Atualizar Agendamento' : 'Salvar no Cronograma'}`;
+            }
         }
 
         function openModalWithService(serviceName, val, cat) {
             openModal('realizada');
             document.getElementById('formService').value = serviceName;
-            document.getElementById('formValue').value = val;
-            document.getElementById('formCategory').value = cat;
+            if (val > 0) document.getElementById('formValue').value = val;
+            if (cat) document.getElementById('formCategory').value = cat;
+        }
+
+        function setQuickService(name, cat, val) {
+            document.getElementById('formService').value = name;
+            if (cat) document.getElementById('formCategory').value = cat;
+            if (val > 0 && !document.getElementById('formValue').value) {
+                document.getElementById('formValue').value = val;
+            }
         }
 
         function closeModal() {
             document.getElementById('modalForm').classList.add('hidden');
         }
 
-        function setQuickService(name) {
-            document.getElementById('formService').value = name;
+        function openSyncModal() {
+            document.getElementById('syncModalVehicle').innerText = vehicleConfigs[currentVehicle].title;
+            document.getElementById('syncModalCount').innerText = `${getActiveHistory().length} registros`;
+            document.getElementById('syncModalTime').innerText = lastSyncTimestamp ? formatDateBR(lastSyncTimestamp) + ' ' + (new Date(lastSyncTimestamp).toLocaleTimeString('pt-BR')) : 'Sessão Atual';
+            document.getElementById('modalSync').classList.remove('hidden');
         }
 
+        function closeSyncModal() {
+            document.getElementById('modalSync').classList.add('hidden');
+        }
+
+        // Edição de Registros
+        function editHistoryItem(id) {
+            const hist = getActiveHistory();
+            const item = hist.find(h => String(h.id) === String(id));
+            if (!item) return;
+
+            openModal('realizada');
+            document.getElementById('editEntryId').value = item.id;
+            document.getElementById('formService').value = item.service || '';
+            document.getElementById('formKm').value = item.km || 0;
+            document.getElementById('formDate').value = item.date ? String(item.date).split('T')[0] : '';
+            document.getElementById('formValue').value = item.value || '';
+            document.getElementById('formCategory').value = getItemCategory(item, currentVehicle);
+            handleEntryTypeChange('realizada');
+        }
+
+        function editScheduleItem(id) {
+            const sched = getActiveSchedule();
+            const item = sched.find(s => String(s.id) === String(id));
+            if (!item) return;
+
+            openModal('agendamento');
+            document.getElementById('editEntryId').value = item.id;
+            document.getElementById('formService').value = item.title || item.service || '';
+            document.getElementById('formKm').value = item.km || 0;
+            document.getElementById('formDate').value = item.date ? String(item.date).split('T')[0] : '';
+            document.getElementById('formValue').value = item.value || '';
+            document.getElementById('formCategory').value = item.category || 'Motor / Óleo';
+            handleEntryTypeChange('agendamento');
+        }
+
+        // Submissão do Formulário (Criação e Edição)
         async function handleFormSubmit(e) {
             e.preventDefault();
             const type = document.querySelector('input[name="entryType"]:checked').value;
+            const editId = document.getElementById('editEntryId').value;
             const service = document.getElementById('formService').value.trim();
-            const km = parseInt(document.getElementById('formKm').value);
+            const km = parseInt(document.getElementById('formKm').value, 10);
             const date = document.getElementById('formDate').value;
             const val = parseFloat(document.getElementById('formValue').value) || 0.0;
             const cat = document.getElementById('formCategory').value;
 
-            if (type === 'realizada') {
-                const hist = getActiveHistory();
-                const newRecord = {
-                    id: 'custom_' + Date.now(),
-                    service: service,
-                    km: km,
-                    date: date,
-                    value: val,
-                    category: cat
-                };
-                hist.push(newRecord);
-                setActiveHistory(hist);
-
-                if (km > currentKm) {
-                    currentKm = km;
-                    setActiveKm(currentKm);
-                    document.getElementById('inputKm').value = currentKm;
-                }
-                showToast(`Gravando na aba ${currentVehicle}...`);
-
-                if (googleSheetsUrl) {
-                    fetch(googleSheetsUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            veiculo: currentVehicle,
-                            service: service,
-                            km: km,
-                            date: date,
-                            value: val
-                        })
-                    }).then(() => {
-                        showToast(`Salvo na aba ${currentVehicle} com sucesso!`);
-                    }).catch(err => console.error("Erro ao enviar para o Sheets", err));
+            if (editId) {
+                // Modo Edição
+                if (type === 'realizada') {
+                    const hist = getActiveHistory();
+                    const idx = hist.findIndex(h => String(h.id) === String(editId));
+                    if (idx !== -1) {
+                        hist[idx] = { ...hist[idx], service, km, date, value: val, category: cat };
+                        setActiveHistory(hist);
+                        showToast("Registro atualizado com sucesso!");
+                    }
+                } else {
+                    const sched = getActiveSchedule();
+                    const idx = sched.findIndex(s => String(s.id) === String(editId));
+                    if (idx !== -1) {
+                        sched[idx] = { ...sched[idx], title: service, km, date, year: date ? date.split('-')[0] : (sched[idx].year || '2026'), value: val, category: cat };
+                        sched.sort((a,b) => (a.km || 0) - (b.km || 0));
+                        setActiveSchedule(sched);
+                        showToast("Agendamento atualizado!");
+                    }
                 }
             } else {
-                const sched = getActiveSchedule();
-                const newSchedule = {
-                    id: Date.now(),
-                    year: date.split('-')[0],
-                    title: service,
-                    km: km,
-                    date: date,
-                    value: val,
-                    category: cat,
-                    done: false
-                };
-                sched.push(newSchedule);
-                sched.sort((a,b) => a.km - b.km);
-                setActiveSchedule(sched);
-                showToast("Agendamento futuro adicionado!");
+                // Modo Novo Registro
+                if (type === 'realizada') {
+                    const hist = getActiveHistory();
+                    const newRecord = {
+                        id: 'custom_' + Date.now(),
+                        service: service,
+                        km: km,
+                        date: date,
+                        value: val,
+                        category: cat
+                    };
+                    hist.push(newRecord);
+                    setActiveHistory(hist);
+
+                    if (km > currentKm) {
+                        currentKm = km;
+                        setActiveKm(currentKm);
+                        document.getElementById('inputKm').value = currentKm;
+                    }
+                    showToast(`Gravando na aba ${currentVehicle}...`);
+
+                    if (googleSheetsUrl) {
+                        fetch(googleSheetsUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                veiculo: currentVehicle,
+                                service: service,
+                                km: km,
+                                date: date,
+                                value: val,
+                                category: cat
+                            })
+                        }).then(() => {
+                            showToast(`Salvo na aba ${currentVehicle} com sucesso!`);
+                        }).catch(err => console.error("Erro ao enviar para o Sheets", err));
+                    }
+                } else {
+                    const sched = getActiveSchedule();
+                    const newSchedule = {
+                        id: 'sched_' + Date.now(),
+                        year: date ? date.split('-')[0] : "2026",
+                        title: service,
+                        km: km,
+                        date: date,
+                        value: val,
+                        category: cat,
+                        done: false
+                    };
+                    sched.push(newSchedule);
+                    sched.sort((a,b) => (a.km || 0) - (b.km || 0));
+                    setActiveSchedule(sched);
+                    showToast("Agendamento futuro programado!");
+                }
             }
 
             closeModal();
             renderComponents();
+            renderBannerAndTips();
             renderHistoryTable();
             renderScheduleTable();
+            updateNextReviewCard();
             updateChart();
         }
 
+        // Concluir Item do Cronograma
         function completeScheduleItem(id) {
             const sched = getActiveSchedule();
-            const item = sched.find(s => s.id === id);
+            const item = sched.find(s => String(s.id) === String(id));
             if (item) {
                 const hist = getActiveHistory();
                 hist.push({
                     id: 'from_sched_' + Date.now(),
                     service: item.title,
-                    km: currentKm,
+                    km: item.km || currentKm,
                     date: new Date().toISOString().split('T')[0],
-                    value: item.value,
-                    category: item.category
+                    value: item.value || 0,
+                    category: item.category || getItemCategory(item, currentVehicle)
                 });
                 setActiveHistory(hist);
 
-                const updatedSched = sched.filter(s => s.id !== id);
+                if (item.km && item.km > currentKm) {
+                    currentKm = item.km;
+                    setActiveKm(currentKm);
+                    document.getElementById('inputKm').value = currentKm;
+                }
+
+                const updatedSched = sched.filter(s => String(s.id) !== String(id));
                 setActiveSchedule(updatedSched);
 
                 if (googleSheetsUrl) {
@@ -939,28 +1392,33 @@
                         body: JSON.stringify({
                             veiculo: currentVehicle,
                             service: item.title,
-                            km: currentKm,
+                            km: item.km || currentKm,
                             date: new Date().toISOString().split('T')[0],
-                            value: item.value
+                            value: item.value || 0,
+                            category: item.category || ''
                         })
-                    });
+                    }).catch(err => console.error(err));
                 }
 
-                showToast(`"${item.title}" gravada na aba ${currentVehicle}!`);
+                showToast(`"${item.title}" concluída e registrada!`);
                 renderComponents();
+                renderBannerAndTips();
                 renderHistoryTable();
                 renderScheduleTable();
+                updateNextReviewCard();
                 updateChart();
             }
         }
 
         function deleteHistoryItem(id) {
-            if (confirm("Deseja realmente excluir este registro do histórico?")) {
+            if (confirm("Deseja realmente excluir este registro do histórico local?")) {
                 let hist = getActiveHistory();
-                hist = hist.filter(h => h.id !== id);
+                hist = hist.filter(h => String(h.id) !== String(id));
                 setActiveHistory(hist);
                 renderHistoryTable();
                 renderComponents();
+                renderBannerAndTips();
+                updateNextReviewCard();
                 updateChart();
                 showToast("Registro excluído.");
             }
@@ -969,13 +1427,15 @@
         function deleteScheduleItem(id) {
             if (confirm("Remover este item do cronograma?")) {
                 let sched = getActiveSchedule();
-                sched = sched.filter(s => s.id !== id);
+                sched = sched.filter(s => String(s.id) !== String(id));
                 setActiveSchedule(sched);
                 renderScheduleTable();
+                updateNextReviewCard();
                 showToast("Item removido do cronograma.");
             }
         }
 
+        // Exportação e Importação de Backup
         function exportBackup() {
             const backup = {
                 activeVehicle: currentVehicle,
@@ -983,6 +1443,8 @@
                 crosserKm: localStorage.getItem('crosser_km'),
                 voyageHistory: localStorage.getItem('voyage_history') ? JSON.parse(localStorage.getItem('voyage_history')) : [],
                 crosserHistory: localStorage.getItem('crosser_history') ? JSON.parse(localStorage.getItem('crosser_history')) : [],
+                voyageSchedule: localStorage.getItem('voyage_schedule') ? JSON.parse(localStorage.getItem('voyage_schedule')) : [],
+                crosserSchedule: localStorage.getItem('crosser_schedule') ? JSON.parse(localStorage.getItem('crosser_schedule')) : [],
                 exportDate: new Date().toISOString()
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
@@ -993,27 +1455,75 @@
             showToast("Backup baixado com sucesso!");
         }
 
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.voyageHistory && !data.crosserHistory) {
+                        alert("Arquivo de backup inválido.");
+                        return;
+                    }
+                    if (confirm("Deseja restaurar este backup? Os dados locais serão substituídos pelos registros do arquivo.")) {
+                        if (data.voyageKm) localStorage.setItem('voyage_km', data.voyageKm);
+                        if (data.crosserKm) localStorage.setItem('crosser_km', data.crosserKm);
+                        if (data.voyageHistory) localStorage.setItem('voyage_history', JSON.stringify(data.voyageHistory));
+                        if (data.crosserHistory) localStorage.setItem('crosser_history', JSON.stringify(data.crosserHistory));
+                        if (data.voyageSchedule) localStorage.setItem('voyage_schedule', JSON.stringify(data.voyageSchedule));
+                        if (data.crosserSchedule) localStorage.setItem('crosser_schedule', JSON.stringify(data.crosserSchedule));
+                        if (data.activeVehicle) localStorage.setItem('active_vehicle', data.activeVehicle);
+
+                        showToast("Backup restaurado com sucesso!");
+                        setTimeout(() => window.location.reload(), 500);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro ao ler o arquivo de backup.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Gráfico de Custos por Categoria
         function updateChart() {
             const ctx = document.getElementById('costChart').getContext('2d');
             const hist = getActiveHistory();
+            const includePurchase = document.getElementById('chkIncludePurchaseChart') ? document.getElementById('chkIncludePurchaseChart').checked : false;
+            
             const categories = {};
             hist.forEach(h => {
-                const cat = h.category || currentVehicle;
-                categories[cat] = (categories[cat] || 0) + (h.value || 0);
+                if (!includePurchase && isAcquisitionItem(h)) return;
+                const cat = getItemCategory(h, currentVehicle);
+                const val = typeof h.value === 'number' ? h.value : (parseFloat(h.value) || 0);
+                if (val > 0) {
+                    categories[cat] = (categories[cat] || 0) + val;
+                }
             });
 
             if (costChartInstance) {
                 costChartInstance.destroy();
             }
 
+            const labels = Object.keys(categories);
+            const values = Object.values(categories);
+
+            if (labels.length === 0) {
+                labels.push("Sem despesas cadastradas");
+                values.push(1);
+            }
+
             costChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(categories),
+                    labels: labels,
                     datasets: [{
-                        data: Object.values(categories),
+                        data: values,
                         backgroundColor: [
-                            '#3B82F6', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899', '#64748B'
+                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
+                            '#06B6D4', '#EC4899', '#64748B', '#F97316', '#14B8A6'
                         ],
                         borderWidth: 0
                     }]
@@ -1029,45 +1539,98 @@
                                 boxWidth: 10,
                                 font: { size: 10 }
                             }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.raw || 0;
+                                    return ` R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                }
+                            }
                         }
                     }
                 }
             });
         }
 
-        function openSyncModal() {
-            alert("A sincronização com o Google Sheets está ativa e a gravar diretamente na sua folha.");
+        // Repor dados limpos
+        function forcarReset() {
+            if (confirm("Isto irá recarregar todos os dados limpos diretamente da sua folha Google Sheets. Continuar?")) {
+                localStorage.removeItem(vehicleConfigs.Voyage.storageKeyHist);
+                localStorage.removeItem(vehicleConfigs.Crosser.storageKeyHist);
+                localStorage.removeItem(vehicleConfigs.Voyage.storageKeyKm);
+                localStorage.removeItem(vehicleConfigs.Crosser.storageKeyKm);
+                localStorage.removeItem(vehicleConfigs.Voyage.storageKeySched);
+                localStorage.removeItem(vehicleConfigs.Crosser.storageKeySched);
+                window.location.reload(true);
+            }
         }
 
+        // Sincronização com Google Sheets
         async function syncWithGoogleSheets(showToastMsg = true) {
             if (!googleSheetsUrl) return;
-            if (showToastMsg) showToast(`A carregar ${currentVehicle} da folha...`);
+            const syncDot = document.getElementById('syncDot');
+            const syncText = document.getElementById('syncText');
+            if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+            if (syncText) syncText.innerText = "Sincronizando...";
+            if (showToastMsg) showToast(`Carregando ${currentVehicle} da nuvem...`);
+
             try {
                 const res = await fetch(`${googleSheetsUrl}?veiculo=${currentVehicle}`, {
                     method: 'GET',
-                    redirect: 'follow'
+                    redirect: 'follow',
+                    cache: 'no-store'
                 });
                 const data = await res.json();
                 if (data.history && Array.isArray(data.history)) {
                     setActiveHistory(data.history);
-                    if (data.odometer && data.odometer > currentKm) {
+                    lastSyncTimestamp = new Date().toISOString();
+                    localStorage.setItem('last_sync_time', lastSyncTimestamp);
+
+                    if (data.odometer) {
                         currentKm = data.odometer;
                         setActiveKm(currentKm);
                         document.getElementById('inputKm').value = currentKm;
-                    } else {
-                        document.getElementById('inputKm').value = currentKm;
                     }
+
                     renderComponents();
+                    renderBannerAndTips();
                     renderHistoryTable();
+                    renderScheduleTable();
+                    updateNextReviewCard();
                     updateChart();
-                    if (showToastMsg) showToast(`${currentVehicle} sincronizado!`);
+
+                    if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                    if (syncText) syncText.innerText = "Nuvem Conectada";
+                    if (showToastMsg) showToast(`${currentVehicle} sincronizado com sucesso!`);
                 }
             } catch (err) {
                 console.error(err);
-                if (showToastMsg) showToast("Erro ao sincronizar com o Sheets.");
+                if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
+                if (syncText) syncText.innerText = "Falha na Nuvem";
+                if (showToastMsg) showToast("Erro ao conectar ao Google Sheets.");
             }
         }
 
+        // Auto-sincronização ao reabrir o app ou voltar para a aba no celular/PC
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                syncWithGoogleSheets(false);
+            }
+        });
+        window.addEventListener('focus', () => {
+            syncWithGoogleSheets(false);
+        });
+
+        // Fechar modais ao teclar ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeSyncModal();
+            }
+        });
+
+        // Inicialização
         switchVehicle(currentVehicle);
     </script>
 </body>
