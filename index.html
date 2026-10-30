@@ -20,6 +20,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AutoGestão">
 
+    <!-- Anti-Cache for Mobile & Instant Cloud Sync -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -77,6 +82,9 @@
 
             <!-- Header Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                <button onclick="openFuelModal()" title="Registrar abastecimento e calcular km/l" class="text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition">
+                    <i class="fa-solid fa-gas-pump"></i> Abastecer
+                </button>
                 <button onclick="forcarReset()" title="Recarregar dados limpos do Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-400 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
                     <i class="fa-solid fa-arrows-rotate"></i> Repor Dados
                 </button>
@@ -193,12 +201,15 @@
         <!-- Main Workspace Tabs: [Histórico Realizado] vs [Cronograma Futuro] -->
         <section class="bg-darkcard border border-darkborder p-5 rounded-xl shadow">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-4 mb-4">
-                <div class="flex gap-2">
-                    <button id="tabHistBtn" onclick="switchMainTab('history')" class="text-xs px-4 py-2 rounded-lg font-bold bg-blue-600 text-white flex items-center gap-2 transition">
+                <div class="flex flex-wrap gap-2">
+                    <button id="tabHistBtn" onclick="switchMainTab('history')" class="text-xs px-3.5 py-2 rounded-lg font-bold bg-blue-600 text-white flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-clock-rotate-left"></i> Histórico (<span id="histCountBadge">0</span>)
                     </button>
-                    <button id="tabPlanBtn" onclick="switchMainTab('plan')" class="text-xs px-4 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition">
+                    <button id="tabPlanBtn" onclick="switchMainTab('plan')" class="text-xs px-3.5 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-calendar-check"></i> Plano Previsto (<span id="schedCountBadge">0</span>)
+                    </button>
+                    <button id="tabFuelBtn" onclick="switchMainTab('fuel')" class="text-xs px-3.5 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-gas-pump text-amber-400"></i> Abastecimentos (<span id="fuelCountBadge">0</span>)
                     </button>
                 </div>
 
@@ -262,6 +273,98 @@
                         <tbody class="divide-y divide-slate-800" id="scheduleTableBody">
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Abastecimentos & Consumo (km/l) -->
+            <div id="tabFuelContent" class="hidden space-y-4">
+                <!-- Fuel KPI Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-slate-900/70 border border-slate-700/60 p-3 rounded-xl flex flex-col justify-between shadow-sm">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-gauge-high text-emerald-400"></i> Consumo Médio
+                        </span>
+                        <div class="mt-1">
+                            <div class="text-xl font-extrabold text-emerald-400" id="fuelAvgKmL">-- km/l</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5" id="fuelAvgSub">Média geral ponderada</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/70 border border-slate-700/60 p-3 rounded-xl flex flex-col justify-between shadow-sm">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-gas-pump text-blue-400"></i> Último Ciclo
+                        </span>
+                        <div class="mt-1">
+                            <div class="text-xl font-extrabold text-blue-400" id="fuelLastKmL">-- km/l</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5" id="fuelLastSub">Rendimento recente</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/70 border border-slate-700/60 p-3 rounded-xl flex flex-col justify-between shadow-sm">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-coins text-amber-400"></i> Custo por KM
+                        </span>
+                        <div class="mt-1">
+                            <div class="text-xl font-extrabold text-amber-400" id="fuelCostPerKm">R$ -- / km</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Custo real de rodagem</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/70 border border-slate-700/60 p-3 rounded-xl flex flex-col justify-between shadow-sm">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-receipt text-purple-400"></i> Total Gasto
+                        </span>
+                        <div class="mt-1">
+                            <div class="text-xl font-extrabold text-purple-400" id="fuelTotalCost">R$ 0,00</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5" id="fuelTotalVolume">0 L abastecidos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fuel Actions & Filters Bar -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-1 border-t border-slate-800">
+                    <div class="flex flex-wrap gap-1.5" id="fuelFilterChips">
+                        <button onclick="filterFuelType('ALL')" id="fuelFilterALL" class="text-xs px-2.5 py-1 rounded-full bg-blue-600 text-white font-medium">Todos</button>
+                        <button onclick="filterFuelType('Gasolina')" id="fuelFilterGasolina" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700">Gasolina</button>
+                        <button onclick="filterFuelType('Etanol')" id="fuelFilterEtanol" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700">Etanol</button>
+                        <button onclick="filterFuelType('GNV')" id="fuelFilterGNV" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700">GNV</button>
+                    </div>
+                    <button onclick="openFuelModal()" class="text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition">
+                        <i class="fa-solid fa-plus"></i> Novo Abastecimento
+                    </button>
+                </div>
+
+                <!-- Fuel Table -->
+                <div class="overflow-x-auto max-h-[460px] overflow-y-auto rounded-lg border border-slate-800">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900/95 text-slate-400 sticky top-0 z-10 border-b border-slate-800">
+                            <tr>
+                                <th class="p-2.5">Data</th>
+                                <th class="p-2.5">Odômetro</th>
+                                <th class="p-2.5">Combustível</th>
+                                <th class="p-2.5">Volume</th>
+                                <th class="p-2.5">Preço / Un.</th>
+                                <th class="p-2.5 text-right">Total Pago</th>
+                                <th class="p-2.5 text-center">Distância</th>
+                                <th class="p-2.5 text-center font-bold text-emerald-400">Consumo (km/l)</th>
+                                <th class="p-2.5 text-right">Custo / km</th>
+                                <th class="p-2.5">Posto</th>
+                                <th class="p-2.5 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800" id="fuelTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Consumption Evolution Chart -->
+                <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-line text-emerald-400"></i> Histórico de Rendimento (Consumo Médio por Tanque)
+                        </h4>
+                        <span class="text-[10px] text-slate-400" id="fuelChartNote">Calculado entre abastecimentos sucessivos</span>
+                    </div>
+                    <div class="relative h-48">
+                        <canvas id="fuelChart"></canvas>
+                    </div>
                 </div>
             </div>
         </section>
@@ -404,6 +507,89 @@
         </div>
     </div>
 
+    <!-- Modal Form: Add Fueling -->
+    <div id="modalFuel" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeFuelModal()">
+        <div class="bg-darkcard border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
+            <button onclick="closeFuelModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+
+            <h3 class="text-base font-bold text-white flex items-center gap-2" id="modalFuelTitle">
+                <i class="fa-solid fa-gas-pump text-amber-400"></i> Registrar Abastecimento
+            </h3>
+            <p class="text-xs text-slate-400 mb-4" id="modalFuelSub">Informe os dados para calcular o rendimento em km/l e o custo por quilômetro</p>
+
+            <form id="fuelForm" onsubmit="handleFuelSubmit(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="editFuelId" value="">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Veículo</label>
+                        <input type="text" id="fuelVehicleDisplay" disabled class="w-full bg-slate-900/60 border border-slate-800 rounded-lg p-2 text-slate-400 font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Data <span class="text-rose-400">*</span></label>
+                        <input type="date" id="fuelDate" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Odômetro Atual (KM) <span class="text-rose-400">*</span></label>
+                        <input type="number" id="fuelKm" required step="1" min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-amber-500 font-mono font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Combustível <span class="text-rose-400">*</span></label>
+                        <select id="fuelType" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-amber-500">
+                            <option value="Gasolina Comum">Gasolina Comum</option>
+                            <option value="Gasolina Aditivada">Gasolina Aditivada</option>
+                            <option value="Etanol">Etanol</option>
+                            <option value="GNV">GNV (m³)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Litros / m³ <span class="text-rose-400">*</span></label>
+                        <input type="number" id="fuelLiters" step="0.01" min="0.01" required placeholder="0.00" oninput="calcFuelUnitFromTotal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Total Pago (R$) <span class="text-rose-400">*</span></label>
+                        <input type="number" id="fuelTotal" step="0.01" min="0.01" required placeholder="0.00" oninput="calcFuelUnitFromTotal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1 font-medium">Preço / Litro (R$)</label>
+                        <input type="number" id="fuelUnitPrice" step="0.001" min="0.001" placeholder="0.000" oninput="calcFuelTotalFromUnit()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                </div>
+
+                <div class="pt-1">
+                    <label class="flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-800 cursor-pointer text-slate-300">
+                        <input type="checkbox" id="fuelTankFull" checked class="rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0">
+                        <span><b>Tanque Cheio?</b> <span class="text-slate-500 text-[10px]">(Essencial para o cálculo de km/l exato entre tanques)</span></span>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 mb-1 font-medium">Posto / Bandeira (Opcional)</label>
+                    <input type="text" id="fuelStation" placeholder="Ex: Ipiranga, Shell, Petrobras..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-amber-500">
+                    <div class="flex flex-wrap gap-1 mt-1.5">
+                        <button type="button" onclick="setQuickStation('Ipiranga')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">Ipiranga</button>
+                        <button type="button" onclick="setQuickStation('Shell')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">Shell</button>
+                        <button type="button" onclick="setQuickStation('Petrobras')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">Petrobras</button>
+                        <button type="button" onclick="setQuickStation('Vibra')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">Vibra</button>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2 border-t border-slate-700 mt-4">
+                    <button type="button" onclick="closeFuelModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">Cancelar</button>
+                    <button type="submit" id="btnSaveFuel" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-floppy-disk"></i> Gravar Abastecimento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-blue-500 text-white px-4 py-3 rounded-lg shadow-xl hidden transition transform duration-300 z-50 text-xs flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-blue-400" id="toastIcon"></i>
@@ -412,10 +598,14 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_10_30_build7";
+        const APP_BUILD_ID = "v2026_10_30_build8";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
+            localStorage.removeItem('voyage_km');
+            localStorage.removeItem('crosser_km');
+            localStorage.removeItem('voyage_fuelings');
+            localStorage.removeItem('crosser_fuelings');
             localStorage.setItem('app_build_version', APP_BUILD_ID);
         }
 
@@ -458,6 +648,7 @@
                 storageKeyHist: "voyage_history",
                 storageKeySched: "voyage_schedule",
                 storageKeyKm: "voyage_km",
+                storageKeyFuel: "voyage_fuelings",
                 categories: ALL_CATEGORIES,
                 quickChips: [
                     { label: "Óleo 5W-40 + Filtro", val: "Troca de óleo e filtro de óleo", cat: "Motor / Óleo", valEstimate: 218 },
@@ -477,6 +668,7 @@
                 storageKeyHist: "crosser_history",
                 storageKeySched: "crosser_schedule",
                 storageKeyKm: "crosser_km",
+                storageKeyFuel: "crosser_fuelings",
                 categories: ALL_CATEGORIES,
                 quickChips: [
                     { label: "Óleo Yamalube + Filtro", val: "Troca de Óleo e Filtro de Óleo", cat: "Motor / Óleo", valEstimate: 57 },
@@ -1110,6 +1302,7 @@
             renderComponents();
             renderHistoryTable();
             renderScheduleTable();
+            renderFuelWorkspace();
             updateNextReviewCard();
             updateChart();
 
@@ -1120,21 +1313,32 @@
             currentTab = tab;
             const histBtn = document.getElementById('tabHistBtn');
             const planBtn = document.getElementById('tabPlanBtn');
+            const fuelBtn = document.getElementById('tabFuelBtn');
             const histCont = document.getElementById('tabHistoryContent');
             const planCont = document.getElementById('tabPlanContent');
+            const fuelCont = document.getElementById('tabFuelContent');
+
+            // Reset base styles
+            if (histBtn) histBtn.className = "text-xs px-3.5 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5 transition";
+            if (planBtn) planBtn.className = "text-xs px-3.5 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5 transition";
+            if (fuelBtn) fuelBtn.className = "text-xs px-3.5 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5 transition";
+            
+            if (histCont) histCont.classList.add('hidden');
+            if (planCont) planCont.classList.add('hidden');
+            if (fuelCont) fuelCont.classList.add('hidden');
 
             if (tab === 'history') {
-                histBtn.className = "text-xs px-4 py-2 rounded-lg font-bold bg-blue-600 text-white flex items-center gap-2 transition";
-                planBtn.className = "text-xs px-4 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition";
-                histCont.classList.remove('hidden');
-                planCont.classList.add('hidden');
+                if (histBtn) histBtn.className = "text-xs px-3.5 py-2 rounded-lg font-bold bg-blue-600 text-white flex items-center gap-1.5 transition";
+                if (histCont) histCont.classList.remove('hidden');
                 renderHistoryTable();
-            } else {
-                planBtn.className = "text-xs px-4 py-2 rounded-lg font-bold bg-blue-600 text-white flex items-center gap-2 transition";
-                histBtn.className = "text-xs px-4 py-2 rounded-lg font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2 transition";
-                planCont.classList.remove('hidden');
-                histCont.classList.add('hidden');
+            } else if (tab === 'plan') {
+                if (planBtn) planBtn.className = "text-xs px-3.5 py-2 rounded-lg font-bold bg-blue-600 text-white flex items-center gap-1.5 transition";
+                if (planCont) planCont.classList.remove('hidden');
                 renderScheduleTable();
+            } else if (tab === 'fuel') {
+                if (fuelBtn) fuelBtn.className = "text-xs px-3.5 py-2 rounded-lg font-bold bg-amber-600 text-white flex items-center gap-1.5 transition shadow";
+                if (fuelCont) fuelCont.classList.remove('hidden');
+                renderFuelWorkspace();
             }
         }
 
@@ -1505,6 +1709,8 @@
                 crosserHistory: localStorage.getItem('crosser_history') ? JSON.parse(localStorage.getItem('crosser_history')) : [],
                 voyageSchedule: localStorage.getItem('voyage_schedule') ? JSON.parse(localStorage.getItem('voyage_schedule')) : [],
                 crosserSchedule: localStorage.getItem('crosser_schedule') ? JSON.parse(localStorage.getItem('crosser_schedule')) : [],
+                voyageFuelings: localStorage.getItem('voyage_fuelings') ? JSON.parse(localStorage.getItem('voyage_fuelings')) : [],
+                crosserFuelings: localStorage.getItem('crosser_fuelings') ? JSON.parse(localStorage.getItem('crosser_fuelings')) : [],
                 exportDate: new Date().toISOString()
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
@@ -1522,7 +1728,7 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (!data.voyageHistory && !data.crosserHistory) {
+                    if (!data.voyageHistory && !data.crosserHistory && !data.voyageFuelings && !data.crosserFuelings) {
                         alert("Arquivo de backup inválido.");
                         return;
                     }
@@ -1533,6 +1739,8 @@
                         if (data.crosserHistory) localStorage.setItem('crosser_history', JSON.stringify(data.crosserHistory));
                         if (data.voyageSchedule) localStorage.setItem('voyage_schedule', JSON.stringify(data.voyageSchedule));
                         if (data.crosserSchedule) localStorage.setItem('crosser_schedule', JSON.stringify(data.crosserSchedule));
+                        if (data.voyageFuelings) localStorage.setItem('voyage_fuelings', JSON.stringify(data.voyageFuelings));
+                        if (data.crosserFuelings) localStorage.setItem('crosser_fuelings', JSON.stringify(data.crosserFuelings));
                         if (data.activeVehicle) localStorage.setItem('active_vehicle', data.activeVehicle);
 
                         showToast("Backup restaurado com sucesso!");
@@ -1613,6 +1821,422 @@
             });
         }
 
+        // ==========================================
+        // MÓDULO DE ABASTECIMENTOS E CONSUMO (KM/L)
+        // ==========================================
+        let currentFuelFilter = 'ALL';
+        let fuelChartInstance = null;
+
+        function getActiveFuelings() {
+            const key = vehicleConfigs[currentVehicle].storageKeyFuel || (currentVehicle === 'Voyage' ? 'voyage_fuelings' : 'crosser_fuelings');
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try { return JSON.parse(saved); } catch(e) {}
+            }
+            return [];
+        }
+
+        function setActiveFuelings(list) {
+            const key = vehicleConfigs[currentVehicle].storageKeyFuel || (currentVehicle === 'Voyage' ? 'voyage_fuelings' : 'crosser_fuelings');
+            localStorage.setItem(key, JSON.stringify(list));
+        }
+
+        function calculateFuelingsWithStats(fuelings) {
+            // Ordena por KM crescente
+            const sorted = [...fuelings].sort((a, b) => {
+                if ((Number(a.km) || 0) !== (Number(b.km) || 0)) return (Number(a.km) || 0) - (Number(b.km) || 0);
+                return (a.date || '').localeCompare(b.date || '');
+            });
+
+            let totalKmRodados = 0;
+            let totalLitrosConsumidos = 0;
+            let totalGasto = 0;
+            let lastValidKmL = null;
+
+            const enriched = [];
+
+            for (let i = 0; i < sorted.length; i++) {
+                const item = sorted[i];
+                const prev = i > 0 ? sorted[i - 1] : null;
+
+                let kmRodados = null;
+                let kmL = null;
+                let custoKm = null;
+                const valorItem = Number(item.valor) || 0;
+                const litrosItem = Number(item.litros) || 0;
+
+                totalGasto += valorItem;
+
+                if (prev && item.km > prev.km) {
+                    kmRodados = item.km - prev.km;
+                    if (litrosItem > 0) {
+                        kmL = kmRodados / litrosItem;
+                        custoKm = valorItem / kmRodados;
+
+                        totalKmRodados += kmRodados;
+                        totalLitrosConsumidos += litrosItem;
+                        lastValidKmL = kmL;
+                    }
+                }
+
+                enriched.push({
+                    ...item,
+                    kmRodados,
+                    kmL,
+                    custoKm
+                });
+            }
+
+            const mediaGeralKmL = (totalKmRodados > 0 && totalLitrosConsumidos > 0)
+                ? (totalKmRodados / totalLitrosConsumidos)
+                : null;
+            
+            const mediaCustoKm = (totalKmRodados > 0 && totalGasto > 0)
+                ? (totalGasto / totalKmRodados)
+                : null;
+
+            return {
+                itemsAsc: enriched,
+                itemsDesc: [...enriched].reverse(),
+                mediaGeralKmL,
+                lastKmL: lastValidKmL,
+                mediaCustoKm,
+                totalGasto,
+                totalKmRodados,
+                totalLitrosConsumidos,
+                count: sorted.length
+            };
+        }
+
+        function filterFuelType(type) {
+            currentFuelFilter = type;
+            renderFuelWorkspace();
+        }
+
+        function renderFuelWorkspace() {
+            const rawFuelings = getActiveFuelings();
+            const stats = calculateFuelingsWithStats(rawFuelings);
+
+            // Badge count
+            const badge = document.getElementById('fuelCountBadge');
+            if (badge) badge.innerText = stats.count;
+
+            // KPI 1: Consumo Médio
+            const avgKmL = document.getElementById('fuelAvgKmL');
+            const avgSub = document.getElementById('fuelAvgSub');
+            if (avgKmL) {
+                if (stats.mediaGeralKmL) {
+                    avgKmL.innerText = `${stats.mediaGeralKmL.toFixed(2)} km/l`;
+                    avgSub.innerText = `${stats.totalKmRodados.toLocaleString('pt-BR')} km em ${stats.count} registros`;
+                } else {
+                    avgKmL.innerText = stats.count > 0 ? "Aguardando 2º tanque" : "-- km/l";
+                    avgSub.innerText = stats.count > 0 ? "Requer 2 abastecimentos p/ calcular" : "Média geral ponderada";
+                }
+            }
+
+            // KPI 2: Último Ciclo
+            const lastKmL = document.getElementById('fuelLastKmL');
+            const lastSub = document.getElementById('fuelLastSub');
+            if (lastKmL) {
+                if (stats.lastKmL) {
+                    lastKmL.innerText = `${stats.lastKmL.toFixed(2)} km/l`;
+                    const latest = stats.itemsDesc[0];
+                    lastSub.innerText = latest && latest.kmRodados ? `Rodou ${latest.kmRodados} km com ${(Number(latest.litros)||0).toFixed(1)}L` : 'Rendimento recente';
+                } else {
+                    lastKmL.innerText = "-- km/l";
+                    lastSub.innerText = "Rendimento recente";
+                }
+            }
+
+            // KPI 3: Custo por KM
+            const costPerKm = document.getElementById('fuelCostPerKm');
+            const costSub = document.getElementById('fuelCostSub');
+            if (costPerKm) {
+                if (stats.mediaCustoKm) {
+                    costPerKm.innerText = `R$ ${stats.mediaCustoKm.toFixed(2)} / km`;
+                    costSub.innerText = "Gasto médio por quilômetro";
+                } else {
+                    costPerKm.innerText = "--";
+                    costSub.innerText = "Custo médio por km";
+                }
+            }
+
+            // KPI 4: Total em Combustível
+            const totalSpent = document.getElementById('fuelTotalSpent');
+            const totalSub = document.getElementById('fuelTotalSub');
+            if (totalSpent) {
+                totalSpent.innerText = `R$ ${stats.totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                totalSub.innerText = `${stats.count} abastecimento(s) registrado(s)`;
+            }
+
+            // Filtro por tipo de combustível se selecionado
+            let displayItems = stats.itemsDesc;
+            if (currentFuelFilter !== 'ALL') {
+                displayItems = displayItems.filter(f => (f.combustivel || '').toLowerCase().includes(currentFuelFilter.toLowerCase()));
+            }
+
+            // Renderizar Tabela
+            const tbody = document.getElementById('fuelTableBody');
+            const emptyEl = document.getElementById('fuelEmptyState');
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (displayItems.length === 0) {
+                    if (emptyEl) emptyEl.classList.remove('hidden');
+                } else {
+                    if (emptyEl) emptyEl.classList.add('hidden');
+                    displayItems.forEach((item) => {
+                        const tr = document.createElement('tr');
+                        tr.className = "border-b border-slate-700/60 hover:bg-slate-700/20 transition";
+
+                        const kmLStr = item.kmL !== null ? `<span class="font-bold text-emerald-400 font-mono">${item.kmL.toFixed(2)} <span class="text-[10px] text-emerald-500 font-normal">km/l</span></span>` : `<span class="text-slate-500 font-mono text-[10px] italic">Base inicial</span>`;
+                        const rodadosStr = item.kmRodados !== null ? `+${item.kmRodados.toLocaleString('pt-BR')} km` : '-';
+                        const custoKmStr = item.custoKm !== null ? `R$ ${item.custoKm.toFixed(2)}/km` : '-';
+                        const precoUnitStr = item.precoLitro ? `R$ ${(Number(item.precoLitro)).toFixed(3)}/L` : '-';
+
+                        tr.innerHTML = `
+                            <td class="p-3 text-slate-300 whitespace-nowrap">${item.date ? formatDateBR(item.date) : '-'}</td>
+                            <td class="p-3 font-mono font-bold text-white whitespace-nowrap">${Number(item.km).toLocaleString('pt-BR')} km</td>
+                            <td class="p-3 whitespace-nowrap">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">${item.combustivel || 'Gasolina'}</span>
+                                ${item.tanqueCheio ? '<span class="ml-1 text-[9px] text-emerald-400" title="Tanque Cheio"><i class="fa-solid fa-circle-check"></i> Cheio</span>' : ''}
+                            </td>
+                            <td class="p-3 font-mono text-slate-300 whitespace-nowrap">${(Number(item.litros)||0).toFixed(2)} L</td>
+                            <td class="p-3 font-mono font-semibold text-white whitespace-nowrap">R$ ${(Number(item.valor)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td class="p-3 font-mono text-slate-400 whitespace-nowrap">${precoUnitStr}</td>
+                            <td class="p-3 font-mono text-slate-300 whitespace-nowrap">${rodadosStr}</td>
+                            <td class="p-3 whitespace-nowrap">${kmLStr}</td>
+                            <td class="p-3 font-mono text-slate-400 whitespace-nowrap">${custoKmStr}</td>
+                            <td class="p-3 text-slate-400 truncate max-w-[120px]">${item.posto || '-'}</td>
+                            <td class="p-3 text-right whitespace-nowrap">
+                                <button onclick="deleteFuelItem('${item.id}')" title="Excluir abastecimento" class="text-rose-400 hover:text-rose-300 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+
+            // Renderizar Gráfico de km/l
+            renderFuelChart(stats.itemsAsc);
+        }
+
+        function renderFuelChart(itemsAsc) {
+            const chartCanvas = document.getElementById('fuelChart');
+            if (!chartCanvas) return;
+            const ctx = chartCanvas.getContext('2d');
+
+            // Filtra itens com km/l válido
+            const valid = itemsAsc.filter(i => i.kmL !== null && i.kmL > 0);
+
+            if (fuelChartInstance) {
+                fuelChartInstance.destroy();
+            }
+
+            if (valid.length === 0) {
+                ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+                return;
+            }
+
+            const labels = valid.map(i => `${formatDateBR(i.date)} (${(i.km).toLocaleString('pt-BR')} km)`);
+            const dataPoints = valid.map(i => Number(i.kmL.toFixed(2)));
+
+            fuelChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Consumo (${currentVehicle}) km/l`,
+                        data: dataPoints,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: { color: '#94A3B8', font: { size: 10 } },
+                            grid: { color: '#334155' }
+                        },
+                        y: {
+                            ticks: { 
+                                color: '#94A3B8', 
+                                font: { size: 10 },
+                                callback: val => `${val} km/l`
+                            },
+                            grid: { color: '#334155' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.raw} km/l`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function openFuelModal() {
+            document.getElementById('modalFuel').classList.remove('hidden');
+            document.getElementById('editFuelId').value = '';
+            document.getElementById('fuelVehicleDisplay').value = vehicleConfigs[currentVehicle].title;
+            document.getElementById('fuelDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('fuelKm').value = currentKm;
+            document.getElementById('fuelLiters').value = '';
+            document.getElementById('fuelTotal').value = '';
+            document.getElementById('fuelUnitPrice').value = '';
+            document.getElementById('fuelTankFull').checked = true;
+            document.getElementById('fuelStation').value = '';
+
+            const fuelSelect = document.getElementById('fuelType');
+            if (fuelSelect) {
+                fuelSelect.value = "Gasolina Comum";
+            }
+        }
+
+        function closeFuelModal() {
+            document.getElementById('modalFuel').classList.add('hidden');
+        }
+
+        function calcFuelUnitFromTotal() {
+            const liters = parseFloat(document.getElementById('fuelLiters').value);
+            const total = parseFloat(document.getElementById('fuelTotal').value);
+            if (liters > 0 && total > 0) {
+                document.getElementById('fuelUnitPrice').value = (total / liters).toFixed(3);
+            }
+        }
+
+        function calcFuelTotalFromUnit() {
+            const liters = parseFloat(document.getElementById('fuelLiters').value);
+            const unit = parseFloat(document.getElementById('fuelUnitPrice').value);
+            if (liters > 0 && unit > 0) {
+                document.getElementById('fuelTotal').value = (liters * unit).toFixed(2);
+            }
+        }
+
+        function setQuickStation(name) {
+            document.getElementById('fuelStation').value = name;
+        }
+
+        function handleFuelSubmit(e) {
+            e.preventDefault();
+            const date = document.getElementById('fuelDate').value;
+            const km = parseInt(document.getElementById('fuelKm').value, 10);
+            const combustivel = document.getElementById('fuelType').value;
+            const litros = parseFloat(document.getElementById('fuelLiters').value);
+            const valor = parseFloat(document.getElementById('fuelTotal').value);
+            let precoLitro = parseFloat(document.getElementById('fuelUnitPrice').value);
+            if (isNaN(precoLitro) || precoLitro <= 0) {
+                precoLitro = (litros > 0 && valor > 0) ? (valor / litros) : 0;
+            }
+            const tanqueCheio = document.getElementById('fuelTankFull').checked;
+            const posto = document.getElementById('fuelStation').value.trim();
+
+            if (!date || isNaN(km) || isNaN(litros) || isNaN(valor) || litros <= 0 || valor <= 0) {
+                alert("Por favor, preencha a data, o odômetro e os valores de litros e total pago.");
+                return;
+            }
+
+            const newFuel = {
+                id: document.getElementById('editFuelId').value || ('fuel_' + currentVehicle.toLowerCase() + '_' + Date.now()),
+                date: date,
+                km: km,
+                combustivel: combustivel,
+                litros: Number(litros.toFixed(2)),
+                valor: Number(valor.toFixed(2)),
+                precoLitro: Number(precoLitro.toFixed(3)),
+                tanqueCheio: tanqueCheio,
+                posto: posto
+            };
+
+            const fuelings = getActiveFuelings();
+            const existingIdx = fuelings.findIndex(f => f.id === newFuel.id);
+            if (existingIdx >= 0) {
+                fuelings[existingIdx] = newFuel;
+            } else {
+                fuelings.push(newFuel);
+            }
+            setActiveFuelings(fuelings);
+
+            // Se o KM do abastecimento for superior ao odômetro atual, avança o odômetro
+            if (km > currentKm) {
+                updateOdometer(km, true);
+                saveOdometerToCloud(km, true);
+            }
+
+            // Dispara envio para a nuvem Google Sheets
+            if (googleSheetsUrl) {
+                const syncDot = document.getElementById('syncDot');
+                const syncText = document.getElementById('syncText');
+                if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+                if (syncText) syncText.innerText = "Gravando na planilha...";
+
+                fetch(googleSheetsUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'abastecimento',
+                        veiculo: currentVehicle,
+                        id: newFuel.id,
+                        date: newFuel.date,
+                        km: newFuel.km,
+                        combustivel: newFuel.combustivel,
+                        litros: newFuel.litros,
+                        valor: newFuel.valor,
+                        precoLitro: newFuel.precoLitro,
+                        tanqueCheio: newFuel.tanqueCheio,
+                        posto: newFuel.posto
+                    })
+                }).then(() => {
+                    if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                    if (syncText) syncText.innerText = "Nuvem Conectada";
+                }).catch(err => {
+                    console.error("Erro ao enviar abastecimento para a planilha:", err);
+                });
+            }
+
+            closeFuelModal();
+            showToast("Abastecimento registrado com sucesso!");
+            renderFuelWorkspace();
+        }
+
+        function deleteFuelItem(id) {
+            if (!confirm("Tem certeza que deseja excluir este registro de abastecimento?")) return;
+            let fuelings = getActiveFuelings();
+            fuelings = fuelings.filter(f => String(f.id) !== String(id));
+            setActiveFuelings(fuelings);
+
+            if (googleSheetsUrl) {
+                fetch(googleSheetsUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'deleteFueling',
+                        veiculo: currentVehicle,
+                        id: id
+                    })
+                }).catch(console.error);
+            }
+
+            showToast("Abastecimento excluído.");
+            renderFuelWorkspace();
+        }
+
         // Repor dados limpos
         function forcarReset() {
             if (confirm("Isto irá recarregar todos os dados limpos diretamente da sua folha Google Sheets. Continuar?")) {
@@ -1622,6 +2246,8 @@
                 localStorage.removeItem(vehicleConfigs.Crosser.storageKeyKm);
                 localStorage.removeItem(vehicleConfigs.Voyage.storageKeySched);
                 localStorage.removeItem(vehicleConfigs.Crosser.storageKeySched);
+                localStorage.removeItem('voyage_fuelings');
+                localStorage.removeItem('crosser_fuelings');
                 window.location.reload(true);
             }
         }
@@ -1636,7 +2262,7 @@
             if (showToastMsg) showToast(`Carregando ${currentVehicle} da nuvem...`);
 
             try {
-                const res = await fetch(`${googleSheetsUrl}?veiculo=${currentVehicle}`, {
+                const res = await fetch(`${googleSheetsUrl}?veiculo=${currentVehicle}&_t=${Date.now()}`, {
                     method: 'GET',
                     redirect: 'follow',
                     cache: 'no-store'
@@ -1647,24 +2273,28 @@
                     lastSyncTimestamp = new Date().toISOString();
                     localStorage.setItem('last_sync_time', lastSyncTimestamp);
 
-                    // Preserva o KM atual do usuário (não rebaixa para o KM antigo do último serviço da planilha)
-                    const savedKm = getActiveKm();
-                    if (data.odometer && data.odometer > savedKm) {
+                    // Sincronização direta com a célula fixa de odômetro da nuvem (F1)
+                    if (data.odometer && data.odometer > 0) {
                         currentKm = data.odometer;
                         setActiveKm(currentKm);
+                        const inp = document.getElementById('inputKm');
+                        if (inp && document.activeElement !== inp) {
+                            inp.value = currentKm;
+                        }
                     } else {
-                        currentKm = savedKm;
+                        currentKm = getActiveKm();
                     }
 
-                    const inp = document.getElementById('inputKm');
-                    if (inp && document.activeElement !== inp) {
-                        inp.value = currentKm;
+                    // Sincroniza abastecimentos se retornados da planilha
+                    if (data.fuelings && Array.isArray(data.fuelings)) {
+                        setActiveFuelings(data.fuelings);
                     }
 
                     renderComponents();
                     renderBannerAndTips();
                     renderHistoryTable();
                     renderScheduleTable();
+                    renderFuelWorkspace();
                     updateNextReviewCard();
                     updateChart();
 
@@ -1676,6 +2306,9 @@
                 console.error(err);
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
                 if (syncText) syncText.innerText = "Falha na Nuvem";
+                if (showToastMsg) showToast("Erro ao conectar ao Google Sheets.");
+            }
+        }
                 if (showToastMsg) showToast("Erro ao conectar ao Google Sheets.");
             }
         }
