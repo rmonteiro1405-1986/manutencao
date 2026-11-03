@@ -619,7 +619,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_03_build10";
+        const APP_BUILD_ID = "v2026_11_03_build11";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
@@ -1779,16 +1779,62 @@
         }
 
         function deleteHistoryItem(id) {
-            if (confirm("Deseja realmente excluir este registro do histórico local?")) {
-                let hist = getActiveHistory();
-                hist = hist.filter(h => String(h.id) !== String(id));
-                setActiveHistory(hist);
+            const hist = getActiveHistory();
+            const item = hist.find(h => String(h.id) === String(id));
+            if (!item) return;
+
+            if (confirm(`Deseja realmente excluir "${item.service}" (${(item.km || 0).toLocaleString('pt-BR')} km) da planilha e do sistema?`)) {
+                // Remove localmente primeiro para resposta imediata na tela
+                const updatedHist = hist.filter(h => String(h.id) !== String(id));
+                setActiveHistory(updatedHist);
                 renderHistoryTable();
                 renderComponents();
                 renderBannerAndTips();
                 updateNextReviewCard();
                 updateChart();
-                showToast("Registro excluído.");
+
+                // Calcula o rowIndex baseado no ID da linha da planilha (ex: "gs_voyage_105" -> linha 106)
+                let rowIndex = null;
+                if (String(item.id).startsWith('gs_')) {
+                    const parts = String(item.id).split('_');
+                    const parsedIdx = parseInt(parts[parts.length - 1], 10);
+                    if (!isNaN(parsedIdx)) {
+                        rowIndex = parsedIdx + 1;
+                    }
+                }
+
+                // Dispara exclusão definitiva no Google Sheets
+                if (googleSheetsUrl) {
+                    const syncDot = document.getElementById('syncDot');
+                    const syncText = document.getElementById('syncText');
+                    if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+                    if (syncText) syncText.innerText = "Excluindo da nuvem...";
+
+                    fetch(googleSheetsUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'delete',
+                            veiculo: currentVehicle,
+                            id: item.id,
+                            rowIndex: rowIndex,
+                            service: item.service,
+                            km: item.km,
+                            date: item.date,
+                            value: item.value
+                        })
+                    }).then(() => {
+                        if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                        if (syncText) syncText.innerText = "Nuvem Conectada";
+                        showToast(`"${item.service}" excluído da planilha!`);
+                    }).catch(err => {
+                        console.error("Erro ao excluir do Google Sheets:", err);
+                        showToast("Aviso: Falha de rede ao sincronizar exclusão com a nuvem.");
+                    });
+                } else {
+                    showToast("Registro excluído localmente.");
+                }
             }
         }
 

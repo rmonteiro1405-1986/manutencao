@@ -210,14 +210,38 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Ação 4: Excluir linha de manutenção existente
+    // Ação 4: Excluir linha de manutenção existente com validação e busca segura
     if (data.action === "delete") {
       if (!sheet) return ContentService.createTextOutput(JSON.stringify({ error: "Aba não encontrada" }));
-      var rowIndex = Number(data.rowIndex);
-      if (rowIndex > 1 && rowIndex <= sheet.getLastRow()) {
-        sheet.deleteRow(rowIndex);
+      var values = sheet.getDataRange().getValues();
+      var targetRow = Number(data.rowIndex) || 0;
+      var deleted = false;
+
+      // 1. Se informou rowIndex, valida se o serviço bate antes de excluir
+      if (targetRow > 1 && targetRow <= values.length) {
+        var rService = String(values[targetRow - 1][0]).trim().toLowerCase();
+        if (!data.service || rService === String(data.service).trim().toLowerCase()) {
+          sheet.deleteRow(targetRow);
+          deleted = true;
+        }
       }
-      return ContentService.createTextOutput(JSON.stringify({ success: true }))
+
+      // 2. Se não excluiu pela targetRow (ex: linhas mudaram de posição), busca pela combinação de Serviço + KM
+      if (!deleted && data.service) {
+        for (var r = values.length - 1; r >= 1; r--) {
+          var rowServ = String(values[r][0]).trim().toLowerCase();
+          var rowKm = Number(values[r][1]) || 0;
+          if (rowServ === String(data.service).trim().toLowerCase()) {
+            if (!data.km || rowKm === Number(data.km)) {
+              sheet.deleteRow(r + 1);
+              deleted = true;
+              break;
+            }
+          }
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ success: deleted }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
