@@ -619,7 +619,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_10_30_build9";
+        const APP_BUILD_ID = "v2026_11_03_build10";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
@@ -693,7 +693,7 @@
                 badge: "150cc BlueFlex",
                 icon: "fa-motorcycle",
                 defaultKm: 72450,
-                specLabel: "Motor 150cc SOHC - Yamalube 20W-50",
+                specLabel: "Motor 150cc SOHC - Motul 5000+ 10W-40",
                 storageKeyHist: "crosser_history",
                 storageKeySched: "crosser_schedule",
                 storageKeyKm: "crosser_km",
@@ -708,7 +708,7 @@
                 },
                 categories: ALL_CATEGORIES,
                 quickChips: [
-                    { label: "Óleo Yamalube + Filtro", val: "Troca de Óleo e Filtro de Óleo", cat: "Motor / Óleo", valEstimate: 57 },
+                    { label: "Óleo Motul + Filtro", val: "Troca de Óleo Motul 5000+ 10W-40 e Filtro de Óleo", cat: "Motor / Óleo", valEstimate: 57 },
                     { label: "Pastilhas / Patim Freio", val: "Pastilha e Patim de Freio", cat: "Freios", valEstimate: 95 },
                     { label: "Kit Relação (Coroa/Pinhão/Corrente)", val: "Kit de transmissão (relação)", cat: "Transmissão / Relação", valEstimate: 165 },
                     { label: "Pneu Traseiro 110/90-17", val: "Pneu Traseiro", cat: "Pneus / Suspensão", valEstimate: 220 },
@@ -729,8 +729,8 @@
             ],
             Crosser: [
                 { id: 2001, year: "2026", title: "Inspeção e Troca de Pastilhas e Patim de Freio", km: 73000, date: "2026-11-10", value: 95, category: "Freios", done: false },
-                { id: 2002, year: "2026", title: "Troca de Óleo Yamalube 20W-50 + Filtro de Óleo (75.000 km)", km: 75000, date: "2026-12-15", value: 57, category: "Motor / Óleo", done: false },
-                { id: 2003, year: "2027", title: "Troca de Óleo Yamalube 20W-50 (77.500 km)", km: 77500, date: "2027-04-10", value: 45, category: "Motor / Óleo", done: false },
+                { id: 2002, year: "2026", title: "Troca de Óleo Motul 5000+ 10W-40 + Filtro de Óleo (75.000 km)", km: 75000, date: "2026-12-15", value: 57, category: "Motor / Óleo", done: false },
+                { id: 2003, year: "2027", title: "Troca de Óleo Motul 5000+ 10W-40 (77.500 km)", km: 77500, date: "2027-04-10", value: 45, category: "Motor / Óleo", done: false },
                 { id: 2004, year: "2027", title: "Revisão 80k: Óleo, Filtro de Ar, Vela NGK e Lubrificação Relação", km: 80000, date: "2027-08-20", value: 160, category: "Motor / Óleo", done: false },
                 { id: 2005, year: "2027", title: "Kit Relação (Coroa, Pinhão e Corrente c/ Retentor)", km: 84000, date: "2027-12-15", value: 165, category: "Transmissão / Relação", done: false }
             ]
@@ -746,7 +746,7 @@
                 s.includes('ipva') || s.includes('licenciamento') || s.includes('dpvat') || s.includes('despachante')) {
                 return 'Aquisição / Doc';
             }
-            if (s.includes('óleo') || s.includes('oleo') || s.includes('lubrax') || s.includes('yamalube') || 
+            if (s.includes('óleo') || s.includes('oleo') || s.includes('lubrax') || s.includes('yamalube') || s.includes('motul') || 
                 s.includes('cabeçote') || s.includes('cabecote') || s.includes('válvula') || s.includes('valvula') || 
                 s.includes('tbi') || s.includes('junta') || s.includes('cárter') || s.includes('carter')) {
                 return 'Motor / Óleo';
@@ -920,7 +920,7 @@
                     { name: "Bateria (60Ah)", lastKm: battery.km, lastDate: battery.date, maxKm: 50000, maxMonths: 36, critical: false, category: "Ignição / Elétrica", suggestedCost: 300 }
                 ];
             } else {
-                const oil = getComponentLatest(hist, ['óleo', 'oleo']) || { km: 72450, date: '2026-09-07' };
+                const oil = getComponentLatest(hist, ['óleo', 'oleo', 'motul', 'yamalube']) || { km: 72450, date: '2026-09-07' };
                 const oilFilter = getComponentLatest(hist, ['filtro de óleo', 'filtro do óleo']) || { km: 72450, date: '2026-09-07' };
                 const relacao = getComponentLatest(hist, ['relação', 'relacao', 'corrente', 'kit de transmissão']) || { km: 66250, date: '2026-01-08' };
                 const freio = getComponentLatest(hist, ['pastilha', 'patim', 'freio', 'lona']) || { km: 53600, date: '2024-09-16' };
@@ -932,7 +932,7 @@
 
                 return [
                     { name: "Pastilhas e Patim de Freio", lastKm: freio.km, lastDate: freio.date, maxKm: 12000, maxMonths: 24, critical: true, category: "Freios", suggestedCost: 95 },
-                    { name: "Óleo do Motor (Yamalube 20W-50)", lastKm: oil.km, lastDate: oil.date, maxKm: 2500, maxMonths: 6, critical: true, category: "Motor / Óleo", suggestedCost: 45 },
+                    { name: "Óleo do Motor (Motul 5000+ 10W-40)", lastKm: oil.km, lastDate: oil.date, maxKm: 2500, maxMonths: 6, critical: true, category: "Motor / Óleo", suggestedCost: 45 },
                     { name: "Filtro de Óleo", lastKm: oilFilter.km, lastDate: oilFilter.date, maxKm: 5000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 15 },
                     { name: "Kit de Relação (Coroa/Pinhão/Corrente)", lastKm: relacao.km, lastDate: relacao.date, maxKm: 18000, maxMonths: 36, critical: false, category: "Transmissão / Relação", suggestedCost: 165 },
                     { name: "Pneu Traseiro (110/90-17)", lastKm: pneuTraseiro.km, lastDate: pneuTraseiro.date, maxKm: 12000, maxMonths: 36, critical: false, category: "Pneus / Suspensão", suggestedCost: 220 },
@@ -1107,7 +1107,7 @@
                 tipsList.innerHTML = `
                     <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded border border-slate-800">
                         <i class="fa-solid fa-check-circle text-amber-400 mt-0.5"></i>
-                        <div><b>Nível de Óleo Motor:</b> Verificar a vareta semanalmente e trocar entre 2.500 e 3.000 km com Yamalube 20W-50.</div>
+                        <div><b>Nível de Óleo Motor:</b> Verificar a vareta semanalmente e trocar entre 2.500 e 3.000 km com Motul 5000+ 10W-40.</div>
                     </li>
                     <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded border border-slate-800">
                         <i class="fa-solid fa-check-circle text-amber-400 mt-0.5"></i>
