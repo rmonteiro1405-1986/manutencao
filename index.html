@@ -112,7 +112,7 @@
     <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
 
         <!-- Top Metrics Cards & Odometer Controller -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
             <!-- KM Controller Card -->
             <div class="bg-darkcard border border-darkborder p-4 rounded-xl shadow relative overflow-hidden flex flex-col justify-between">
                 <div>
@@ -154,6 +154,30 @@
                 <div class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
                     <span id="fipeRef">Ref: -</span>
                     <span class="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-400 font-mono" id="fipeCode">FIPE</span>
+                </div>
+            </div>
+
+            <!-- IPVA & GRT (RJ) Estimation Card -->
+            <div class="bg-darkcard border border-darkborder p-4 rounded-xl shadow flex flex-col justify-between">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-invoice-dollar text-purple-400"></i> IPVA & GRT (<span id="ipvaYearBadge">2027</span>)
+                    </span>
+                    <button onclick="openIpvaModal()" title="Ver memória de cálculo detalhada do IPVA e GRT do RJ" class="text-[10px] text-purple-400 hover:text-purple-300 flex items-center gap-1 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-700 transition shadow-sm">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Detalhes</span>
+                    </button>
+                </div>
+                <div class="mt-1">
+                    <div class="text-2xl font-extrabold text-purple-400" id="ipvaTotalCard">Carregando...</div>
+                    <div class="text-xs text-slate-300 mt-0.5 flex items-center gap-1.5 flex-wrap" id="ipvaAliqSubtitle">
+                        <span class="bg-purple-950/90 text-purple-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-purple-800" id="ipvaAliqBadge">RJ 1,5% (GNV)</span>
+                        <span class="truncate text-[11px] text-slate-300" id="ipvaBreakdownSub">IPVA + GRT</span>
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
+                    <span id="ipvaAvistaBadge" class="truncate text-emerald-400">À vista: -</span>
+                    <span class="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-400 font-mono">SEFAZ-RJ</span>
                 </div>
             </div>
 
@@ -611,6 +635,146 @@
         </div>
     </div>
 
+    <!-- Modal: Detalhes IPVA & GRT (RJ) -->
+    <div id="modalIpva" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeIpvaModal()">
+        <div class="bg-darkcard border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeIpvaModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="flex items-center gap-2.5 mb-2">
+                <div class="w-9 h-9 rounded-lg bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-400">
+                    <i class="fa-solid fa-file-invoice-dollar text-base"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">
+                        Estimativa IPVA & GRT • Rio de Janeiro
+                    </h3>
+                    <p class="text-xs text-slate-400">Exercício Fiscal: <b class="text-purple-300" id="modalIpvaYear">2027</b> • <span id="modalIpvaVehicleName" class="text-slate-300 font-medium">VW Voyage</span></p>
+                </div>
+            </div>
+
+            <!-- GNV Toggle Container (exclusivo para automóvel Voyage) -->
+            <div id="modalIpvaGnvContainer" class="mt-3 p-3 bg-purple-950/30 border border-purple-900/60 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-gas-pump text-purple-400 text-base"></i>
+                    <div>
+                        <div class="text-xs font-semibold text-white">Benefício Fiscal GNV (Lei RJ nº 7.174/15)</div>
+                        <div class="text-[11px] text-slate-400">Redução de alíquota de 4,0% para <b class="text-purple-300">1,5%</b> no RJ</div>
+                    </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="modalIpvaGnvToggle" class="sr-only peer" onchange="toggleGnvRj(this.checked)">
+                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+            </div>
+
+            <!-- Memória de Cálculo -->
+            <div class="mt-3 space-y-2 text-xs">
+                <!-- Base Venal FIPE -->
+                <div class="flex justify-between items-center p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                    <div>
+                        <div class="font-medium text-slate-300">Valor Venal (Base Tabela FIPE)</div>
+                        <div class="text-[10px] text-slate-500" id="modalIpvaFipeRef">Cotação oficial de referência</div>
+                    </div>
+                    <div class="text-sm font-bold text-white" id="modalIpvaFipeVal">R$ 0,00</div>
+                </div>
+
+                <!-- Alíquota SEFAZ-RJ -->
+                <div class="flex justify-between items-center p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                    <div>
+                        <div class="font-medium text-slate-300">Alíquota IPVA (SEFAZ-RJ)</div>
+                        <div class="text-[10px] text-slate-500" id="modalIpvaAliqDesc">Alíquota estadual aplicada</div>
+                    </div>
+                    <div>
+                        <span class="inline-block px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-800 rounded font-bold text-xs" id="modalIpvaAliqBadge">1,5%</span>
+                    </div>
+                </div>
+
+                <!-- IPVA Integral -->
+                <div class="flex justify-between items-center p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                    <div class="font-medium text-slate-300">Valor do IPVA Integral</div>
+                    <div class="text-sm font-bold text-purple-300" id="modalIpvaIntegralVal">R$ 0,00</div>
+                </div>
+
+                <!-- GRT DETRAN-RJ -->
+                <div class="flex justify-between items-center p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                    <div>
+                        <div class="font-medium text-slate-300">Taxa GRT (DETRAN-RJ)</div>
+                        <div class="text-[10px] text-slate-500">Licenciamento Anual e Fiscalização + Emissão CRLV-e</div>
+                    </div>
+                    <div class="text-sm font-bold text-slate-200">R$ 293,71</div>
+                </div>
+
+                <!-- Total Estimado Integral -->
+                <div class="flex justify-between items-center p-3 bg-purple-950/40 rounded-xl border border-purple-800">
+                    <div>
+                        <div class="font-bold text-white text-sm">Total Estimado (IPVA + GRT)</div>
+                        <div class="text-[10px] text-slate-400">Total integral de taxas e tributos para o RJ</div>
+                    </div>
+                    <div class="text-base font-extrabold text-purple-400" id="modalIpvaTotalIntegral">R$ 0,00</div>
+                </div>
+            </div>
+
+            <!-- Condições de Pagamento RJ -->
+            <div class="mt-3.5 border-t border-slate-700/80 pt-3">
+                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-wallet text-emerald-400"></i> Formas de Pagamento (SEFAZ / DETRAN-RJ)
+                </h4>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- Opção 1: Cota Única à Vista -->
+                    <div class="p-3 bg-emerald-950/20 border border-emerald-800/60 rounded-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-emerald-400">Cota Única (À Vista)</span>
+                                <span class="text-[10px] font-bold bg-emerald-900/60 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-700">-3% no IPVA</span>
+                            </div>
+                            <div class="text-lg font-extrabold text-emerald-300 mt-1" id="modalIpvaTotalAvista">R$ 0,00</div>
+                            <div class="text-[10px] text-emerald-400/90 mt-0.5" id="modalIpvaEconomia">Economia de R$ 0,00</div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-2 border-t border-emerald-900/40 pt-1.5">
+                            IPVA com desconto de 3% + taxa GRT integral.
+                        </div>
+                    </div>
+
+                    <!-- Opção 2: Parcelado em 3x -->
+                    <div class="p-3 bg-slate-900/80 border border-slate-800 rounded-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-300">Parcelado em 3x</span>
+                                <span class="text-[10px] font-medium bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">Sem juros</span>
+                            </div>
+                            <div class="text-lg font-extrabold text-white mt-1" id="modalIpvaParcela3x">3x de R$ 0,00</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">+ GRT (R$ 293,71)</div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-2 border-t border-slate-800 pt-1.5">
+                            3 cotas mensais de IPVA (Jan, Fev, Mar) + GRT.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Base Legal e Informações Úteis -->
+            <div class="mt-3.5 p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                <div class="font-medium text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-scale-balanced text-purple-400"></i> Legislação e Base Tributária RJ
+                </div>
+                <p>• <b>Carros de Passeio (Flex/Gasolina):</b> Alíquota de 4,0% (Lei RJ nº 7.174/2015).</p>
+                <p>• <b>Carros com GNV regularizado:</b> Alíquota reduzida de 1,5% (vistoria de GNV anual e CSV em dia).</p>
+                <p>• <b>Motocicletas e Similares:</b> Alíquota de 2,0%.</p>
+                <p>• <b>GRT DETRAN-RJ:</b> Guia de Regularização de Taxas (Licenciamento Anual e Fiscalização + CRLV-e) fixada em R$ 293,71.</p>
+                <p class="text-[10px] text-slate-500 pt-1 border-t border-slate-800 mt-1">
+                    * O valor venal de referência oficial é estabelecido pela Tabela FIPE divulgada pela SEFAZ-RJ no final de cada ano.
+                </p>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+                <button type="button" onclick="closeIpvaModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-blue-500 text-white px-4 py-3 rounded-lg shadow-xl hidden transition transform duration-300 z-50 text-xs flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-blue-400" id="toastIcon"></i>
@@ -619,7 +783,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_03_build11";
+        const APP_BUILD_ID = "v2026_11_13_build12";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
@@ -1343,6 +1507,7 @@
             updateNextReviewCard();
             updateChart();
             fetchFipeData(false);
+            renderIpvaCard();
 
             syncWithGoogleSheets(false);
         }
@@ -1372,12 +1537,14 @@
                 if (priceEl) priceEl.innerText = cached.price || cfg.fipe.defaultPrice;
                 if (modelEl) modelEl.innerText = cached.model || cfg.fipe.modelDesc;
                 if (refEl) refEl.innerText = `Ref: ${cached.referenceMonth || cfg.fipe.defaultRef}`;
+                renderIpvaCard();
                 return;
             }
 
             if (priceEl) priceEl.innerText = (cached && cached.price) || cfg.fipe.defaultPrice;
             if (modelEl) modelEl.innerText = (cached && cached.model) || cfg.fipe.modelDesc;
             if (refEl) refEl.innerText = `Ref: ${(cached && cached.referenceMonth) || cfg.fipe.defaultRef}`;
+            renderIpvaCard();
 
             if (refreshIcon) refreshIcon.classList.add('fa-spin');
 
@@ -1400,6 +1567,7 @@
                         if (modelEl) modelEl.innerText = fipeData.model;
                         if (refEl) refEl.innerText = `Ref: ${fipeData.referenceMonth}`;
                         if (codeEl) codeEl.innerText = fipeData.codeFipe;
+                        renderIpvaCard();
 
                         if (forceRefresh) {
                             showToast(`FIPE ${currentVehicle}: ${fipeData.price} (${fipeData.referenceMonth})`);
@@ -1411,6 +1579,194 @@
             } finally {
                 if (refreshIcon) refreshIcon.classList.remove('fa-spin');
             }
+        }
+
+        // ==========================================
+        // CÁLCULO E ESTIMATIVA DE IPVA E GRT (RJ)
+        // ==========================================
+        const GRT_DETRAN_RJ = 293.71;
+
+        function getNumericFipePrice(vehicleName) {
+            const cfg = vehicleConfigs[vehicleName];
+            if (!cfg) return 0;
+            const cachedRaw = localStorage.getItem(`fipe_data_${vehicleName}`);
+            let priceStr = (cfg.fipe && cfg.fipe.defaultPrice) || '0';
+            if (cachedRaw) {
+                try {
+                    const parsed = JSON.parse(cachedRaw);
+                    if (parsed && parsed.price) priceStr = parsed.price;
+                } catch (e) {}
+            }
+            const cleaned = String(priceStr).replace(/[^\d,.-]/g, '').trim();
+            if (cleaned.includes(',')) {
+                const val = parseFloat(cleaned.replace(/\./g, '').replace(',', '.'));
+                return isNaN(val) ? 0 : val;
+            }
+            const val = parseFloat(cleaned);
+            return isNaN(val) ? 0 : val;
+        }
+
+        function calculateIpvaGrt(vehicleName = currentVehicle) {
+            const now = new Date();
+            const targetYear = now.getFullYear() + 1;
+            const valorVenal = getNumericFipePrice(vehicleName);
+
+            let hasGnv = false;
+            let aliquota = 0.04;
+            let aliquotaPercent = 4.0;
+            let aliquotaLabel = "4,0% (Flex)";
+
+            if (vehicleName === 'Voyage') {
+                // Voyage possui kit GNV por padrão no histórico
+                const gnvSetting = localStorage.getItem('voyage_gnv_rj');
+                hasGnv = gnvSetting === null || gnvSetting === 'true';
+                if (hasGnv) {
+                    aliquota = 0.015;
+                    aliquotaPercent = 1.5;
+                    aliquotaLabel = "1,5% (GNV)";
+                } else {
+                    aliquota = 0.04;
+                    aliquotaPercent = 4.0;
+                    aliquotaLabel = "4,0% (Flex)";
+                }
+            } else if (vehicleName === 'Crosser') {
+                aliquota = 0.02;
+                aliquotaPercent = 2.0;
+                aliquotaLabel = "2,0% (Moto)";
+            }
+
+            const valorIpvaIntegral = valorVenal * aliquota;
+            const descontoAvista = valorIpvaIntegral * 0.03;
+            const valorIpvaAvista = valorIpvaIntegral - descontoAvista;
+            const grt = GRT_DETRAN_RJ;
+
+            const totalIntegral = valorIpvaIntegral + grt;
+            const totalAvista = valorIpvaAvista + grt;
+            const parcela3x = valorIpvaIntegral / 3;
+
+            return {
+                targetYear,
+                vehicleName,
+                valorVenal,
+                hasGnv,
+                aliquota,
+                aliquotaPercent,
+                aliquotaLabel,
+                valorIpvaIntegral,
+                descontoAvista,
+                valorIpvaAvista,
+                grt,
+                totalIntegral,
+                totalAvista,
+                parcela3x
+            };
+        }
+
+        function formatBrlCurrency(num) {
+            return (Number(num) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function renderIpvaCard() {
+            const calc = calculateIpvaGrt(currentVehicle);
+
+            const yearBadge = document.getElementById('ipvaYearBadge');
+            const totalCard = document.getElementById('ipvaTotalCard');
+            const aliqBadge = document.getElementById('ipvaAliqBadge');
+            const breakdownSub = document.getElementById('ipvaBreakdownSub');
+            const avistaBadge = document.getElementById('ipvaAvistaBadge');
+
+            if (yearBadge) yearBadge.innerText = calc.targetYear;
+            if (totalCard) totalCard.innerText = formatBrlCurrency(calc.totalIntegral);
+            if (aliqBadge) {
+                aliqBadge.innerText = `RJ ${calc.aliquotaLabel}`;
+                aliqBadge.className = calc.hasGnv 
+                    ? "bg-purple-950/90 text-purple-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-purple-800"
+                    : (currentVehicle === 'Crosser' 
+                        ? "bg-amber-950/90 text-amber-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-amber-800"
+                        : "bg-blue-950/90 text-blue-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-blue-800");
+            }
+            if (breakdownSub) {
+                breakdownSub.innerText = `IPVA: ${formatBrlCurrency(calc.valorIpvaIntegral)} | GRT: R$ 293,71`;
+            }
+            if (avistaBadge) {
+                avistaBadge.innerText = `À vista: ${formatBrlCurrency(calc.totalAvista)} (-3%)`;
+            }
+        }
+
+        function openIpvaModal() {
+            const calc = calculateIpvaGrt(currentVehicle);
+
+            const yearEl = document.getElementById('modalIpvaYear');
+            const vehicleEl = document.getElementById('modalIpvaVehicleName');
+            if (yearEl) yearEl.innerText = calc.targetYear;
+            if (vehicleEl) vehicleEl.innerText = vehicleConfigs[currentVehicle].title;
+
+            // GNV container toggle só aparece para o automóvel Voyage
+            const gnvContainer = document.getElementById('modalIpvaGnvContainer');
+            const gnvToggle = document.getElementById('modalIpvaGnvToggle');
+            if (gnvContainer) {
+                if (currentVehicle === 'Voyage') {
+                    gnvContainer.classList.remove('hidden');
+                    if (gnvToggle) gnvToggle.checked = calc.hasGnv;
+                } else {
+                    gnvContainer.classList.add('hidden');
+                }
+            }
+
+            // Referência FIPE
+            const cachedFipe = localStorage.getItem(`fipe_data_${currentVehicle}`);
+            let fipeRefText = "Cotação oficial de referência";
+            if (cachedFipe) {
+                try {
+                    const parsed = JSON.parse(cachedFipe);
+                    if (parsed && parsed.referenceMonth) fipeRefText = `Referência: ${parsed.referenceMonth}`;
+                } catch(e) {}
+            }
+            const fipeRefEl = document.getElementById('modalIpvaFipeRef');
+            const fipeValEl = document.getElementById('modalIpvaFipeVal');
+            if (fipeRefEl) fipeRefEl.innerText = fipeRefText;
+            if (fipeValEl) fipeValEl.innerText = formatBrlCurrency(calc.valorVenal);
+
+            // Alíquota
+            const aliqBadgeEl = document.getElementById('modalIpvaAliqBadge');
+            const aliqDescEl = document.getElementById('modalIpvaAliqDesc');
+            if (aliqBadgeEl) aliqBadgeEl.innerText = `${calc.aliquotaPercent.toFixed(1).replace('.', ',')}%`;
+            if (aliqDescEl) {
+                aliqDescEl.innerText = currentVehicle === 'Crosser'
+                    ? "Motocicletas e similares no RJ (2,0%)"
+                    : (calc.hasGnv ? "Carro com GNV regularizado no RJ (1,5%)" : "Automóvel Flex padrão sem GNV (4,0%)");
+            }
+
+            // Valores
+            const ipvaIntEl = document.getElementById('modalIpvaIntegralVal');
+            const totalIntEl = document.getElementById('modalIpvaTotalIntegral');
+            if (ipvaIntEl) ipvaIntEl.innerText = formatBrlCurrency(calc.valorIpvaIntegral);
+            if (totalIntEl) totalIntEl.innerText = formatBrlCurrency(calc.totalIntegral);
+
+            // Cota única
+            const totalAvistaEl = document.getElementById('modalIpvaTotalAvista');
+            const economiaEl = document.getElementById('modalIpvaEconomia');
+            if (totalAvistaEl) totalAvistaEl.innerText = formatBrlCurrency(calc.totalAvista);
+            if (economiaEl) economiaEl.innerText = `Economia de ${formatBrlCurrency(calc.descontoAvista)} no IPVA`;
+
+            // Parcelamento
+            const parc3xEl = document.getElementById('modalIpvaParcela3x');
+            if (parc3xEl) parc3xEl.innerText = `3x de ${formatBrlCurrency(calc.parcela3x)}`;
+
+            const modal = document.getElementById('modalIpva');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeIpvaModal() {
+            const modal = document.getElementById('modalIpva');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function toggleGnvRj(isChecked) {
+            localStorage.setItem('voyage_gnv_rj', isChecked ? 'true' : 'false');
+            renderIpvaCard();
+            openIpvaModal();
+            showToast(`Alíquota RJ atualizada: ${isChecked ? '1,5% (GNV)' : '4,0% (Flex)'}`);
         }
 
         function switchMainTab(tab) {
@@ -2475,6 +2831,8 @@
             if (e.key === 'Escape') {
                 closeModal();
                 closeSyncModal();
+                closeFuelModal();
+                closeIpvaModal();
             }
         });
 
