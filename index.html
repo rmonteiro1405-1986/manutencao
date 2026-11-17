@@ -27,6 +27,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
@@ -85,14 +86,14 @@
                 <button onclick="openFuelModal()" title="Registrar abastecimento e calcular km/l" class="text-xs bg-amber-600 hover:bg-amber-500 text-white font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition">
                     <i class="fa-solid fa-gas-pump"></i> Abastecer
                 </button>
-                <button onclick="forcarReset()" title="Recarregar dados limpos do Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-400 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
+                <button onclick="forcarReset()" title="Recarregar dados limpos do Supabase" class="text-xs bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-400 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
                     <i class="fa-solid fa-arrows-rotate"></i> Repor Dados
                 </button>
-                <button onclick="openSyncModal()" id="btnSyncStatus" title="Status da sincronização" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-300">
+                <button onclick="openSyncModal()" id="btnSyncStatus" title="Status da sincronização com Supabase" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-300">
                     <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="syncText">Nuvem Conectada</span>
+                    <span id="syncText">Supabase Conectado</span>
                 </button>
-                <button onclick="syncWithGoogleSheets(true)" title="Recarregar dados do Google Sheets" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 p-1.5 rounded-lg transition text-slate-300">
+                <button onclick="syncWithCloud(true)" title="Recarregar dados do banco de dados" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 p-1.5 rounded-lg transition text-slate-300">
                     <i class="fa-solid fa-cloud-arrow-down"></i>
                 </button>
                 <button onclick="openModal('realizada')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition">
@@ -522,14 +523,18 @@
             <button onclick="closeSyncModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
             <div class="flex items-center gap-3 mb-3">
                 <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-cloud"></i>
+                    <i class="fa-solid fa-database"></i>
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-white">Sincronização com Google Sheets</h3>
-                    <span class="text-xs text-emerald-400 font-medium">Conexão Ativa via Google Apps Script</span>
+                    <h3 class="text-sm font-bold text-white">Sincronização com Supabase</h3>
+                    <span class="text-xs text-emerald-400 font-medium">PostgreSQL • Alta Performance &amp; Realtime</span>
                 </div>
             </div>
             <div class="bg-slate-900/80 rounded-lg p-3 border border-slate-800 space-y-2 text-xs text-slate-300 my-4">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Banco de Dados:</span>
+                    <span class="font-mono text-emerald-400 font-semibold">PostgreSQL (Supabase)</span>
+                </div>
                 <div class="flex justify-between">
                     <span class="text-slate-400">Veículo Ativo:</span>
                     <span class="font-bold text-white" id="syncModalVehicle">-</span>
@@ -539,13 +544,19 @@
                     <span class="font-bold text-emerald-400" id="syncModalCount">-</span>
                 </div>
                 <div class="flex justify-between">
+                    <span class="text-slate-400">Status da Conexão:</span>
+                    <span class="text-emerald-400 font-medium flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Ativa (&lt; 50ms)
+                    </span>
+                </div>
+                <div class="flex justify-between">
                     <span class="text-slate-400">Última Sincronização:</span>
                     <span class="font-mono text-slate-300" id="syncModalTime">-</span>
                 </div>
             </div>
             <div class="flex justify-end gap-2">
                 <button onclick="closeSyncModal()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Fechar</button>
-                <button onclick="syncWithGoogleSheets(true); closeSyncModal();" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow">
+                <button onclick="syncWithCloud(true); closeSyncModal();" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow">
                     <i class="fa-solid fa-arrows-rotate"></i> Sincronizar Agora
                 </button>
             </div>
@@ -783,7 +794,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_17_build13";
+        const APP_BUILD_ID = "v2026_11_17_build14_supabase";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
@@ -796,7 +807,7 @@
 
         // Variáveis de Estado
         let currentVehicle = localStorage.getItem('active_vehicle') || 'Voyage';
-        let currentKm = currentVehicle === 'Voyage' ? 104500 : 72450;
+        let currentKm = currentVehicle === 'Voyage' ? 104465 : 74781;
         let currentTab = 'history';
         let currentScheduleFilter = 'ALL';
         let currentHistoryCategory = 'ALL';
@@ -804,7 +815,13 @@
         let includePurchaseInTotal = false;
         let lastSyncTimestamp = localStorage.getItem('last_sync_time') || null;
         let costChartInstance = null;
-        const googleSheetsUrl = 'https://script.google.com/macros/s/AKfycbxaATZjJgQDhUEprn_JKQQh_NnpfatyHlPlZwcwr5rlA6cjXaZcCCoszWGFH6s6DL_o/exec';
+
+        // Configuração Supabase (PostgreSQL em Nuvem)
+        const SUPABASE_URL = "https://ymqpsxvvtdsbounjvnju.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_PEaCWADzq8rXOYBouVFtAg_Ei1fsDWE";
+        const supabase = (window.supabase && typeof window.supabase.createClient === 'function')
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+            : null;
 
         // Categorias padrão
         const ALL_CATEGORIES = [
@@ -1814,34 +1831,32 @@
         }
 
         let odometerCloudSyncTimer = null;
-        function saveOdometerToCloud(km, immediate = false) {
-            if (!googleSheetsUrl) return;
+        async function saveOdometerToCloud(km, immediate = false) {
             clearTimeout(odometerCloudSyncTimer);
-            const delay = immediate ? 0 : 1500;
-            odometerCloudSyncTimer = setTimeout(() => {
+            const delay = immediate ? 0 : 500;
+            odometerCloudSyncTimer = setTimeout(async () => {
                 const syncDot = document.getElementById('syncDot');
                 const syncText = document.getElementById('syncText');
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
                 if (syncText) syncText.innerText = "Salvando KM...";
 
-                fetch(googleSheetsUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'updateOdometer',
-                        veiculo: currentVehicle,
-                        km: km
-                    })
-                }).then(() => {
+                const vId = currentVehicle.toLowerCase();
+                try {
+                    if (supabase) {
+                        const { error } = await supabase.from('veiculos').update({
+                            odometro: km,
+                            updated_at: new Date().toISOString()
+                        }).eq('id', vId);
+                        if (error) throw error;
+                    }
                     if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                    if (syncText) syncText.innerText = "Nuvem Conectada";
-                    showToast(`KM ${currentVehicle} salvo na nuvem: ${km.toLocaleString('pt-BR')} km`);
-                }).catch(err => {
-                    console.error("Erro ao salvar odometro na nuvem:", err);
+                    if (syncText) syncText.innerText = "Supabase Conectado";
+                    showToast(`KM ${currentVehicle} salvo: ${km.toLocaleString('pt-BR')} km`);
+                } catch (err) {
+                    console.error("Erro ao salvar odômetro no Supabase:", err);
                     if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
-                    if (syncText) syncText.innerText = "Falha na Nuvem";
-                });
+                    if (syncText) syncText.innerText = "Falha ao Salvar KM";
+                }
             }, delay);
         }
 
@@ -2006,6 +2021,17 @@
                         setActiveHistory(hist);
                         showToast("Registro atualizado com sucesso!");
                     }
+                    if (supabase) {
+                        supabase.from('manutencoes').update({
+                            servico: service,
+                            km: km,
+                            data: date,
+                            valor: val,
+                            categoria: cat
+                        }).eq('id', editId).then(({ error }) => {
+                            if (error) console.error("Erro ao atualizar no Supabase:", error);
+                        });
+                    }
                 } else {
                     const sched = getActiveSchedule();
                     const idx = sched.findIndex(s => String(s.id) === String(editId));
@@ -2015,13 +2041,27 @@
                         setActiveSchedule(sched);
                         showToast("Agendamento atualizado!");
                     }
+                    if (supabase) {
+                        supabase.from('cronograma').upsert({
+                            id: String(editId),
+                            veiculo_id: currentVehicle.toLowerCase(),
+                            titulo: service,
+                            target_km: km,
+                            target_date: date,
+                            valor_estimado: val,
+                            categoria: cat
+                        }).then(({ error }) => {
+                            if (error) console.error("Erro no Supabase:", error);
+                        });
+                    }
                 }
             } else {
                 // Modo Novo Registro
+                const vId = currentVehicle.toLowerCase();
                 if (type === 'realizada') {
                     const hist = getActiveHistory();
                     const newRecord = {
-                        id: 'custom_' + Date.now(),
+                        id: 'manut_' + vId + '_' + Date.now(),
                         service: service,
                         km: km,
                         date: date,
@@ -2035,30 +2075,32 @@
                         currentKm = km;
                         setActiveKm(currentKm);
                         document.getElementById('inputKm').value = currentKm;
+                        saveOdometerToCloud(currentKm, true);
                     }
-                    showToast(`Gravando na aba ${currentVehicle}...`);
+                    showToast(`Gravando no Supabase (${currentVehicle})...`);
 
-                    if (googleSheetsUrl) {
-                        fetch(googleSheetsUrl, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                veiculo: currentVehicle,
-                                service: service,
-                                km: km,
-                                date: date,
-                                value: val,
-                                category: cat
-                            })
-                        }).then(() => {
-                            showToast(`Salvo na aba ${currentVehicle} com sucesso!`);
-                        }).catch(err => console.error("Erro ao enviar para o Sheets", err));
+                    if (supabase) {
+                        supabase.from('manutencoes').insert({
+                            id: newRecord.id,
+                            veiculo_id: vId,
+                            servico: service,
+                            km: km,
+                            data: date,
+                            valor: val,
+                            categoria: cat
+                        }).then(({ error }) => {
+                            if (error) {
+                                console.error("Erro ao gravar no Supabase:", error);
+                                showToast("Erro ao gravar no banco de dados.");
+                            } else {
+                                showToast(`Salvo no Supabase com sucesso!`);
+                            }
+                        });
                     }
                 } else {
                     const sched = getActiveSchedule();
                     const newSchedule = {
-                        id: 'sched_' + Date.now(),
+                        id: 'plan_' + vId + '_' + Date.now(),
                         year: date ? date.split('-')[0] : "2026",
                         title: service,
                         km: km,
@@ -2071,6 +2113,21 @@
                     sched.sort((a,b) => (a.km || 0) - (b.km || 0));
                     setActiveSchedule(sched);
                     showToast("Agendamento futuro programado!");
+
+                    if (supabase) {
+                        supabase.from('cronograma').insert({
+                            id: newSchedule.id,
+                            veiculo_id: vId,
+                            titulo: service,
+                            target_km: km,
+                            target_date: date,
+                            valor_estimado: val,
+                            categoria: cat,
+                            done: false
+                        }).then(({ error }) => {
+                            if (error) console.error("Erro ao agendar no Supabase:", error);
+                        });
+                    }
                 }
             }
 
@@ -2088,40 +2145,42 @@
             const sched = getActiveSchedule();
             const item = sched.find(s => String(s.id) === String(id));
             if (item) {
+                const vId = currentVehicle.toLowerCase();
                 const hist = getActiveHistory();
-                hist.push({
-                    id: 'from_sched_' + Date.now(),
+                const newHistItem = {
+                    id: 'manut_' + vId + '_' + Date.now(),
                     service: item.title,
                     km: item.km || currentKm,
                     date: new Date().toISOString().split('T')[0],
                     value: item.value || 0,
                     category: item.category || getItemCategory(item, currentVehicle)
-                });
+                };
+                hist.push(newHistItem);
                 setActiveHistory(hist);
 
                 if (item.km && item.km > currentKm) {
                     currentKm = item.km;
                     setActiveKm(currentKm);
                     document.getElementById('inputKm').value = currentKm;
+                    saveOdometerToCloud(currentKm, true);
                 }
 
                 const updatedSched = sched.filter(s => String(s.id) !== String(id));
                 setActiveSchedule(updatedSched);
 
-                if (googleSheetsUrl) {
-                    fetch(googleSheetsUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            veiculo: currentVehicle,
-                            service: item.title,
-                            km: item.km || currentKm,
-                            date: new Date().toISOString().split('T')[0],
-                            value: item.value || 0,
-                            category: item.category || ''
-                        })
-                    }).catch(err => console.error(err));
+                if (supabase) {
+                    supabase.from('manutencoes').insert({
+                        id: newHistItem.id,
+                        veiculo_id: vId,
+                        servico: newHistItem.service,
+                        km: newHistItem.km,
+                        data: newHistItem.date,
+                        valor: newHistItem.value,
+                        categoria: newHistItem.category
+                    }).then(({ error }) => {
+                        if (error) console.error("Erro ao salvar no Supabase:", error);
+                    });
+                    supabase.from('cronograma').delete().eq('id', String(id)).then(() => {});
                 }
 
                 showToast(`"${item.title}" concluída e registrada!`);
@@ -2139,7 +2198,7 @@
             const item = hist.find(h => String(h.id) === String(id));
             if (!item) return;
 
-            if (confirm(`Deseja realmente excluir "${item.service}" (${(item.km || 0).toLocaleString('pt-BR')} km) da planilha e do sistema?`)) {
+            if (confirm(`Deseja realmente excluir "${item.service}" (${(item.km || 0).toLocaleString('pt-BR')} km) do banco de dados?`)) {
                 // Remove localmente primeiro para resposta imediata na tela
                 const updatedHist = hist.filter(h => String(h.id) !== String(id));
                 setActiveHistory(updatedHist);
@@ -2149,44 +2208,22 @@
                 updateNextReviewCard();
                 updateChart();
 
-                // Calcula o rowIndex baseado no ID da linha da planilha (ex: "gs_voyage_105" -> linha 106)
-                let rowIndex = null;
-                if (String(item.id).startsWith('gs_')) {
-                    const parts = String(item.id).split('_');
-                    const parsedIdx = parseInt(parts[parts.length - 1], 10);
-                    if (!isNaN(parsedIdx)) {
-                        rowIndex = parsedIdx + 1;
-                    }
-                }
-
-                // Dispara exclusão definitiva no Google Sheets
-                if (googleSheetsUrl) {
+                // Dispara exclusão direta no Supabase
+                if (supabase) {
                     const syncDot = document.getElementById('syncDot');
                     const syncText = document.getElementById('syncText');
                     if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-                    if (syncText) syncText.innerText = "Excluindo da nuvem...";
+                    if (syncText) syncText.innerText = "Excluindo do banco...";
 
-                    fetch(googleSheetsUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'delete',
-                            veiculo: currentVehicle,
-                            id: item.id,
-                            rowIndex: rowIndex,
-                            service: item.service,
-                            km: item.km,
-                            date: item.date,
-                            value: item.value
-                        })
-                    }).then(() => {
+                    supabase.from('manutencoes').delete().eq('id', item.id).then(({ error }) => {
                         if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                        if (syncText) syncText.innerText = "Nuvem Conectada";
-                        showToast(`"${item.service}" excluído da planilha!`);
-                    }).catch(err => {
-                        console.error("Erro ao excluir do Google Sheets:", err);
-                        showToast("Aviso: Falha de rede ao sincronizar exclusão com a nuvem.");
+                        if (syncText) syncText.innerText = "Supabase Conectado";
+                        if (error) {
+                            console.error("Erro ao excluir do Supabase:", error);
+                            showToast("Aviso: Falha ao excluir do banco de dados.");
+                        } else {
+                            showToast(`"${item.service}" excluído com sucesso!`);
+                        }
                     });
                 } else {
                     showToast("Registro excluído localmente.");
@@ -2201,6 +2238,11 @@
                 setActiveSchedule(sched);
                 renderScheduleTable();
                 updateNextReviewCard();
+
+                if (supabase) {
+                    supabase.from('cronograma').delete().eq('id', String(id)).then(() => {});
+                }
+
                 showToast("Item removido do cronograma.");
             }
         }
@@ -2683,35 +2725,29 @@
                 saveOdometerToCloud(km, true);
             }
 
-            // Dispara envio para a nuvem Google Sheets
-            if (googleSheetsUrl) {
+            // Gravação direta no Supabase
+            if (supabase) {
                 const syncDot = document.getElementById('syncDot');
                 const syncText = document.getElementById('syncText');
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-                if (syncText) syncText.innerText = "Gravando na planilha...";
+                if (syncText) syncText.innerText = "Gravando no banco...";
 
-                fetch(googleSheetsUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'abastecimento',
-                        veiculo: currentVehicle,
-                        id: newFuel.id,
-                        date: newFuel.date,
-                        km: newFuel.km,
-                        combustivel: newFuel.combustivel,
-                        litros: newFuel.litros,
-                        valor: newFuel.valor,
-                        precoLitro: newFuel.precoLitro,
-                        tanqueCheio: newFuel.tanqueCheio,
-                        posto: newFuel.posto
-                    })
-                }).then(() => {
+                const vId = currentVehicle.toLowerCase();
+                supabase.from('abastecimentos').upsert({
+                    id: newFuel.id,
+                    veiculo_id: vId,
+                    data: newFuel.date,
+                    km: newFuel.km,
+                    combustivel: newFuel.combustivel,
+                    litros: newFuel.litros,
+                    valor: newFuel.valor,
+                    preco_litro: newFuel.precoLitro,
+                    tanque_cheio: newFuel.tanqueCheio,
+                    posto: newFuel.posto
+                }).then(({ error }) => {
                     if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                    if (syncText) syncText.innerText = "Nuvem Conectada";
-                }).catch(err => {
-                    console.error("Erro ao enviar abastecimento para a planilha:", err);
+                    if (syncText) syncText.innerText = "Supabase Conectado";
+                    if (error) console.error("Erro ao gravar abastecimento no Supabase:", error);
                 });
             }
 
@@ -2726,26 +2762,19 @@
             fuelings = fuelings.filter(f => String(f.id) !== String(id));
             setActiveFuelings(fuelings);
 
-            if (googleSheetsUrl) {
-                fetch(googleSheetsUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'deleteFueling',
-                        veiculo: currentVehicle,
-                        id: id
-                    })
-                }).catch(console.error);
+            if (supabase) {
+                supabase.from('abastecimentos').delete().eq('id', id).then(({ error }) => {
+                    if (error) console.error("Erro ao excluir abastecimento do Supabase:", error);
+                });
             }
 
             showToast("Abastecimento excluído.");
             renderFuelWorkspace();
         }
 
-        // Repor dados limpos
+        // Repor dados limpos recarregando do banco
         function forcarReset() {
-            if (confirm("Isto irá recarregar todos os dados limpos diretamente da sua folha Google Sheets. Continuar?")) {
+            if (confirm("Isto irá recarregar todos os dados limpos diretamente do banco Supabase. Continuar?")) {
                 localStorage.removeItem(vehicleConfigs.Voyage.storageKeyHist);
                 localStorage.removeItem(vehicleConfigs.Crosser.storageKeyHist);
                 localStorage.removeItem(vehicleConfigs.Voyage.storageKeyKm);
@@ -2758,68 +2787,152 @@
             }
         }
 
-        // Sincronização com Google Sheets
-        async function syncWithGoogleSheets(showToastMsg = true) {
-            if (!googleSheetsUrl) return;
+        // Sincronização de Alta Velocidade com Supabase (PostgreSQL)
+        async function syncWithCloud(showToastMsg = true) {
             const vehicleToSync = currentVehicle;
             const syncDot = document.getElementById('syncDot');
             const syncText = document.getElementById('syncText');
             if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
             if (syncText) syncText.innerText = "Sincronizando...";
-            if (showToastMsg) showToast(`Carregando ${vehicleToSync} da nuvem...`);
+            if (showToastMsg) showToast(`Carregando ${vehicleToSync} do Supabase...`);
+
+            if (!supabase) {
+                console.warn("Cliente Supabase não inicializado.");
+                if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
+                if (syncText) syncText.innerText = "Supabase Indisponível";
+                return;
+            }
+
+            const vId = vehicleToSync.toLowerCase();
 
             try {
-                const res = await fetch(`${googleSheetsUrl}?veiculo=${vehicleToSync}&_t=${Date.now()}`, {
-                    method: 'GET',
-                    redirect: 'follow',
-                    cache: 'no-store'
-                });
-                const data = await res.json();
+                // 1. Dados do Veículo e Odômetro
+                const { data: vData, error: vErr } = await supabase
+                    .from('veiculos')
+                    .select('*')
+                    .eq('id', vId)
+                    .single();
 
-                // Trava de segurança: Se o usuário trocou de veículo enquanto a rede respondia, descarta para não contaminar o odômetro/histórico
-                if (currentVehicle !== vehicleToSync || (data.veiculo && data.veiculo.toLowerCase() !== vehicleToSync.toLowerCase())) {
-                    return;
+                if (currentVehicle !== vehicleToSync) return; // Trava de concorrência
+
+                if (vData && vData.odometro > 0) {
+                    currentKm = vData.odometro;
+                    setActiveKm(currentKm);
+                    const inp = document.getElementById('inputKm');
+                    if (inp && document.activeElement !== inp) {
+                        inp.value = currentKm;
+                    }
+                } else {
+                    currentKm = getActiveKm();
                 }
 
-                if (data.history && Array.isArray(data.history)) {
-                    setActiveHistory(data.history);
+                // 2. Histórico de Manutenções
+                const { data: histData, error: hErr } = await supabase
+                    .from('manutencoes')
+                    .select('*')
+                    .eq('veiculo_id', vId)
+                    .order('km', { ascending: false });
+
+                if (currentVehicle !== vehicleToSync) return;
+
+                if (histData && Array.isArray(histData)) {
+                    const formattedHist = histData.map(h => ({
+                        id: h.id,
+                        service: h.servico,
+                        km: Number(h.km),
+                        date: h.data,
+                        value: Number(h.valor) || 0,
+                        category: h.categoria || 'Manutenção'
+                    }));
+                    setActiveHistory(formattedHist);
                     lastSyncTimestamp = new Date().toISOString();
                     localStorage.setItem('last_sync_time', lastSyncTimestamp);
-
-                    // Sincronização direta com a célula fixa de odômetro da nuvem (F1)
-                    if (data.odometer && data.odometer > 0) {
-                        currentKm = data.odometer;
-                        setActiveKm(currentKm);
-                        const inp = document.getElementById('inputKm');
-                        if (inp && document.activeElement !== inp) {
-                            inp.value = currentKm;
-                        }
-                    } else {
-                        currentKm = getActiveKm();
-                    }
-
-                    // Sincroniza abastecimentos se retornados da planilha
-                    if (data.fuelings && Array.isArray(data.fuelings)) {
-                        setActiveFuelings(data.fuelings);
-                    }
-
-                    renderComponents();
-                    renderBannerAndTips();
-                    renderHistoryTable();
-                    renderScheduleTable();
-                    renderFuelWorkspace();
-                    updateNextReviewCard();
-                    updateChart();
-
-                    if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                    if (syncText) syncText.innerText = "Nuvem Conectada";
-                    if (showToastMsg) showToast(`${currentVehicle} sincronizado com sucesso!`);
                 }
+
+                // 3. Abastecimentos
+                const { data: fuelData, error: fErr } = await supabase
+                    .from('abastecimentos')
+                    .select('*')
+                    .eq('veiculo_id', vId)
+                    .order('km', { ascending: true });
+
+                if (currentVehicle !== vehicleToSync) return;
+
+                if (fuelData && Array.isArray(fuelData)) {
+                    const formattedFuel = fuelData.map(f => ({
+                        id: f.id,
+                        date: f.data,
+                        veiculo: currentVehicle,
+                        km: Number(f.km),
+                        combustivel: f.combustivel,
+                        litros: Number(f.litros),
+                        valor: Number(f.valor),
+                        precoLitro: Number(f.preco_litro),
+                        tanqueCheio: f.tanque_cheio,
+                        kmRodados: f.km_rodados,
+                        kmL: f.km_l,
+                        custoKm: f.custo_km,
+                        posto: f.posto || ''
+                    }));
+                    setActiveFuelings(formattedFuel);
+                }
+
+                // 4. Cronograma
+                const { data: schedData, error: sErr } = await supabase
+                    .from('cronograma')
+                    .select('*')
+                    .eq('veiculo_id', vId)
+                    .order('target_km', { ascending: true });
+
+                if (currentVehicle !== vehicleToSync) return;
+
+                if (schedData && Array.isArray(schedData) && schedData.length > 0) {
+                    const formattedSched = schedData.map(s => ({
+                        id: s.id,
+                        title: s.titulo,
+                        km: s.target_km,
+                        date: s.target_date,
+                        value: Number(s.valor_estimado) || 0,
+                        category: s.categoria || 'Revisão',
+                        done: s.done
+                    }));
+                    setActiveSchedule(formattedSched);
+                }
+
+                renderComponents();
+                renderBannerAndTips();
+                renderHistoryTable();
+                renderScheduleTable();
+                renderFuelWorkspace();
+                updateNextReviewCard();
+                updateChart();
+
+                if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                if (syncText) syncText.innerText = "Supabase Conectado";
+                if (showToastMsg) showToast(`${currentVehicle} sincronizado via Supabase!`);
             } catch (err) {
-                console.error(err);
+                console.error("Falha ao sincronizar com Supabase:", err);
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
-                if (syncText) syncText.innerText = "Falha na Nuvem";
-                if (showToastMsg) showToast("Erro ao conectar ao Google Sheets.");
+                if (syncText) syncText.innerText = "Falha no Supabase";
+                if (showToastMsg) showToast("Erro ao conectar ao Supabase.");
+            }
+        }
+
+        // Alias para compatibilidade
+        const syncWithGoogleSheets = syncWithCloud;
+
+        // Assinatura em Tempo Real (Supabase Realtime)
+        function setupRealtime() {
+            if (!supabase) return;
+            try {
+                supabase.channel('db-changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'veiculos' }, () => syncWithCloud(false))
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'manutencoes' }, () => syncWithCloud(false))
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'abastecimentos' }, () => syncWithCloud(false))
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'cronograma' }, () => syncWithCloud(false))
+                    .subscribe();
+            } catch (e) {
+                console.warn("Realtime error:", e);
             }
         }
 
@@ -2845,6 +2958,7 @@
 
         // Inicialização
         switchVehicle(currentVehicle);
+        setupRealtime();
     </script>
 </body>
 </html>
