@@ -794,7 +794,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_17_build14_supabase";
+        const APP_BUILD_ID = "v2026_11_17_build15_supabase";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
@@ -819,7 +819,7 @@
         // Configuração Supabase (PostgreSQL em Nuvem)
         const SUPABASE_URL = "https://ymqpsxvvtdsbounjvnju.supabase.co";
         const SUPABASE_KEY = "sb_publishable_PEaCWADzq8rXOYBouVFtAg_Ei1fsDWE";
-        const supabase = (window.supabase && typeof window.supabase.createClient === 'function')
+        const sbClient = (window.supabase && typeof window.supabase.createClient === 'function')
             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
             : null;
 
@@ -1842,8 +1842,8 @@
 
                 const vId = currentVehicle.toLowerCase();
                 try {
-                    if (supabase) {
-                        const { error } = await supabase.from('veiculos').update({
+                    if (sbClient) {
+                        const { error } = await sbClient.from('veiculos').update({
                             odometro: km,
                             updated_at: new Date().toISOString()
                         }).eq('id', vId);
@@ -2021,8 +2021,8 @@
                         setActiveHistory(hist);
                         showToast("Registro atualizado com sucesso!");
                     }
-                    if (supabase) {
-                        supabase.from('manutencoes').update({
+                    if (sbClient) {
+                        sbClient.from('manutencoes').update({
                             servico: service,
                             km: km,
                             data: date,
@@ -2041,8 +2041,8 @@
                         setActiveSchedule(sched);
                         showToast("Agendamento atualizado!");
                     }
-                    if (supabase) {
-                        supabase.from('cronograma').upsert({
+                    if (sbClient) {
+                        sbClient.from('cronograma').upsert({
                             id: String(editId),
                             veiculo_id: currentVehicle.toLowerCase(),
                             titulo: service,
@@ -2079,8 +2079,8 @@
                     }
                     showToast(`Gravando no Supabase (${currentVehicle})...`);
 
-                    if (supabase) {
-                        supabase.from('manutencoes').insert({
+                    if (sbClient) {
+                        sbClient.from('manutencoes').insert({
                             id: newRecord.id,
                             veiculo_id: vId,
                             servico: service,
@@ -2114,8 +2114,8 @@
                     setActiveSchedule(sched);
                     showToast("Agendamento futuro programado!");
 
-                    if (supabase) {
-                        supabase.from('cronograma').insert({
+                    if (sbClient) {
+                        sbClient.from('cronograma').insert({
                             id: newSchedule.id,
                             veiculo_id: vId,
                             titulo: service,
@@ -2168,8 +2168,8 @@
                 const updatedSched = sched.filter(s => String(s.id) !== String(id));
                 setActiveSchedule(updatedSched);
 
-                if (supabase) {
-                    supabase.from('manutencoes').insert({
+                if (sbClient) {
+                    sbClient.from('manutencoes').insert({
                         id: newHistItem.id,
                         veiculo_id: vId,
                         servico: newHistItem.service,
@@ -2180,7 +2180,7 @@
                     }).then(({ error }) => {
                         if (error) console.error("Erro ao salvar no Supabase:", error);
                     });
-                    supabase.from('cronograma').delete().eq('id', String(id)).then(() => {});
+                    sbClient.from('cronograma').delete().eq('id', String(id)).then(() => {});
                 }
 
                 showToast(`"${item.title}" concluída e registrada!`);
@@ -2209,13 +2209,13 @@
                 updateChart();
 
                 // Dispara exclusão direta no Supabase
-                if (supabase) {
+                if (sbClient) {
                     const syncDot = document.getElementById('syncDot');
                     const syncText = document.getElementById('syncText');
                     if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
                     if (syncText) syncText.innerText = "Excluindo do banco...";
 
-                    supabase.from('manutencoes').delete().eq('id', item.id).then(({ error }) => {
+                    sbClient.from('manutencoes').delete().eq('id', item.id).then(({ error }) => {
                         if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
                         if (syncText) syncText.innerText = "Supabase Conectado";
                         if (error) {
@@ -2239,8 +2239,8 @@
                 renderScheduleTable();
                 updateNextReviewCard();
 
-                if (supabase) {
-                    supabase.from('cronograma').delete().eq('id', String(id)).then(() => {});
+                if (sbClient) {
+                    sbClient.from('cronograma').delete().eq('id', String(id)).then(() => {});
                 }
 
                 showToast("Item removido do cronograma.");
@@ -2726,14 +2726,14 @@
             }
 
             // Gravação direta no Supabase
-            if (supabase) {
+            if (sbClient) {
                 const syncDot = document.getElementById('syncDot');
                 const syncText = document.getElementById('syncText');
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
                 if (syncText) syncText.innerText = "Gravando no banco...";
 
                 const vId = currentVehicle.toLowerCase();
-                supabase.from('abastecimentos').upsert({
+                sbClient.from('abastecimentos').upsert({
                     id: newFuel.id,
                     veiculo_id: vId,
                     data: newFuel.date,
@@ -2762,8 +2762,8 @@
             fuelings = fuelings.filter(f => String(f.id) !== String(id));
             setActiveFuelings(fuelings);
 
-            if (supabase) {
-                supabase.from('abastecimentos').delete().eq('id', id).then(({ error }) => {
+            if (sbClient) {
+                sbClient.from('abastecimentos').delete().eq('id', id).then(({ error }) => {
                     if (error) console.error("Erro ao excluir abastecimento do Supabase:", error);
                 });
             }
@@ -2796,7 +2796,7 @@
             if (syncText) syncText.innerText = "Sincronizando...";
             if (showToastMsg) showToast(`Carregando ${vehicleToSync} do Supabase...`);
 
-            if (!supabase) {
+            if (!sbClient) {
                 console.warn("Cliente Supabase não inicializado.");
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
                 if (syncText) syncText.innerText = "Supabase Indisponível";
@@ -2807,7 +2807,7 @@
 
             try {
                 // 1. Dados do Veículo e Odômetro
-                const { data: vData, error: vErr } = await supabase
+                const { data: vData, error: vErr } = await sbClient
                     .from('veiculos')
                     .select('*')
                     .eq('id', vId)
@@ -2827,7 +2827,7 @@
                 }
 
                 // 2. Histórico de Manutenções
-                const { data: histData, error: hErr } = await supabase
+                const { data: histData, error: hErr } = await sbClient
                     .from('manutencoes')
                     .select('*')
                     .eq('veiculo_id', vId)
@@ -2850,7 +2850,7 @@
                 }
 
                 // 3. Abastecimentos
-                const { data: fuelData, error: fErr } = await supabase
+                const { data: fuelData, error: fErr } = await sbClient
                     .from('abastecimentos')
                     .select('*')
                     .eq('veiculo_id', vId)
@@ -2878,7 +2878,7 @@
                 }
 
                 // 4. Cronograma
-                const { data: schedData, error: sErr } = await supabase
+                const { data: schedData, error: sErr } = await sbClient
                     .from('cronograma')
                     .select('*')
                     .eq('veiculo_id', vId)
@@ -2923,9 +2923,9 @@
 
         // Assinatura em Tempo Real (Supabase Realtime)
         function setupRealtime() {
-            if (!supabase) return;
+            if (!sbClient) return;
             try {
-                supabase.channel('db-changes')
+                sbClient.channel('db-changes')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'veiculos' }, () => syncWithCloud(false))
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'manutencoes' }, () => syncWithCloud(false))
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'abastecimentos' }, () => syncWithCloud(false))
