@@ -386,8 +386,8 @@
                                 <th class="p-2.5">Odômetro</th>
                                 <th class="p-2.5">Combustível</th>
                                 <th class="p-2.5">Volume</th>
-                                <th class="p-2.5">Preço / Un.</th>
                                 <th class="p-2.5 text-right">Total Pago</th>
+                                <th class="p-2.5 text-right">Preço / Un.</th>
                                 <th class="p-2.5 text-center">Distância</th>
                                 <th class="p-2.5 text-center font-bold text-emerald-400">Consumo (km/l)</th>
                                 <th class="p-2.5 text-right">Custo / km</th>
@@ -2549,13 +2549,14 @@
                                 ${item.tanqueCheio ? '<span class="ml-1 text-[9px] text-emerald-400" title="Tanque Cheio"><i class="fa-solid fa-circle-check"></i> Cheio</span>' : ''}
                             </td>
                             <td class="p-3 font-mono text-slate-300 whitespace-nowrap">${(Number(item.litros)||0).toFixed(2)} L</td>
-                            <td class="p-3 font-mono font-semibold text-white whitespace-nowrap">R$ ${(Number(item.valor)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                            <td class="p-3 font-mono text-slate-400 whitespace-nowrap">${precoUnitStr}</td>
-                            <td class="p-3 font-mono text-slate-300 whitespace-nowrap">${rodadosStr}</td>
-                            <td class="p-3 whitespace-nowrap">${kmLStr}</td>
-                            <td class="p-3 font-mono text-slate-400 whitespace-nowrap">${custoKmStr}</td>
+                            <td class="p-3 font-mono font-semibold text-white whitespace-nowrap text-right">R$ ${(Number(item.valor)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td class="p-3 font-mono text-slate-400 whitespace-nowrap text-right">${precoUnitStr}</td>
+                            <td class="p-3 font-mono text-slate-300 whitespace-nowrap text-center">${rodadosStr}</td>
+                            <td class="p-3 whitespace-nowrap text-center">${kmLStr}</td>
+                            <td class="p-3 font-mono text-slate-400 whitespace-nowrap text-right">${custoKmStr}</td>
                             <td class="p-3 text-slate-400 truncate max-w-[120px]">${item.posto || '-'}</td>
-                            <td class="p-3 text-right whitespace-nowrap">
+                            <td class="p-3 text-center whitespace-nowrap">
+                                <button onclick="editFuelItem('${item.id}')" title="Editar abastecimento" class="text-slate-400 hover:text-amber-400 p-1 mr-1 transition"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <button onclick="deleteFuelItem('${item.id}')" title="Excluir abastecimento" class="text-rose-400 hover:text-rose-300 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
                             </td>
                         `;
@@ -2640,6 +2641,14 @@
         function openFuelModal() {
             document.getElementById('modalFuel').classList.remove('hidden');
             document.getElementById('editFuelId').value = '';
+
+            const titleEl = document.getElementById('modalFuelTitle');
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-gas-pump text-amber-400"></i> Registrar Abastecimento';
+            const subEl = document.getElementById('modalFuelSub');
+            if (subEl) subEl.innerText = 'Informe os dados para calcular o rendimento em km/l e o custo por quilômetro';
+            const btnSave = document.getElementById('btnSaveFuel');
+            if (btnSave) btnSave.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Gravar Abastecimento';
+
             document.getElementById('fuelVehicleDisplay').value = vehicleConfigs[currentVehicle].title;
             document.getElementById('fuelDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('fuelKm').value = currentKm;
@@ -2655,8 +2664,39 @@
             }
         }
 
+        function editFuelItem(id) {
+            const fuelings = getActiveFuelings();
+            const item = fuelings.find(f => String(f.id) === String(id));
+            if (!item) return;
+
+            document.getElementById('modalFuel').classList.remove('hidden');
+            document.getElementById('editFuelId').value = item.id;
+
+            const titleEl = document.getElementById('modalFuelTitle');
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Abastecimento';
+            const subEl = document.getElementById('modalFuelSub');
+            if (subEl) subEl.innerText = 'Altere as informações do abastecimento selecionado';
+            const btnSave = document.getElementById('btnSaveFuel');
+            if (btnSave) btnSave.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações';
+
+            document.getElementById('fuelVehicleDisplay').value = vehicleConfigs[currentVehicle].title;
+            document.getElementById('fuelDate').value = item.date ? String(item.date).split('T')[0] : '';
+            document.getElementById('fuelKm').value = item.km || 0;
+            document.getElementById('fuelLiters').value = (item.litros !== undefined && item.litros !== null) ? item.litros : '';
+            document.getElementById('fuelTotal').value = (item.valor !== undefined && item.valor !== null) ? item.valor : '';
+            document.getElementById('fuelUnitPrice').value = (item.precoLitro !== undefined && item.precoLitro !== null) ? item.precoLitro : '';
+            document.getElementById('fuelTankFull').checked = item.tanqueCheio !== false;
+            document.getElementById('fuelStation').value = item.posto || '';
+
+            const fuelSelect = document.getElementById('fuelType');
+            if (fuelSelect && item.combustivel) {
+                fuelSelect.value = item.combustivel;
+            }
+        }
+
         function closeFuelModal() {
             document.getElementById('modalFuel').classList.add('hidden');
+            document.getElementById('editFuelId').value = '';
         }
 
         function calcFuelUnitFromTotal() {
@@ -2681,6 +2721,8 @@
 
         function handleFuelSubmit(e) {
             e.preventDefault();
+            const editId = document.getElementById('editFuelId').value;
+            const isEdit = Boolean(editId);
             const date = document.getElementById('fuelDate').value;
             const km = parseInt(document.getElementById('fuelKm').value, 10);
             const combustivel = document.getElementById('fuelType').value;
@@ -2699,7 +2741,7 @@
             }
 
             const newFuel = {
-                id: document.getElementById('editFuelId').value || ('fuel_' + currentVehicle.toLowerCase() + '_' + Date.now()),
+                id: editId || ('fuel_' + currentVehicle.toLowerCase() + '_' + Date.now()),
                 date: date,
                 km: km,
                 combustivel: combustivel,
@@ -2711,12 +2753,13 @@
             };
 
             const fuelings = getActiveFuelings();
-            const existingIdx = fuelings.findIndex(f => f.id === newFuel.id);
+            const existingIdx = fuelings.findIndex(f => String(f.id) === String(newFuel.id));
             if (existingIdx >= 0) {
                 fuelings[existingIdx] = newFuel;
             } else {
                 fuelings.push(newFuel);
             }
+            fuelings.sort((a,b) => (Number(a.km)||0) - (Number(b.km)||0));
             setActiveFuelings(fuelings);
 
             // Se o KM do abastecimento for superior ao odômetro atual, avança o odômetro
@@ -2730,7 +2773,7 @@
                 const syncDot = document.getElementById('syncDot');
                 const syncText = document.getElementById('syncText');
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-                if (syncText) syncText.innerText = "Gravando no banco...";
+                if (syncText) syncText.innerText = isEdit ? "Atualizando no banco..." : "Gravando no banco...";
 
                 const vId = currentVehicle.toLowerCase();
                 sbClient.from('abastecimentos').upsert({
@@ -2752,7 +2795,7 @@
             }
 
             closeFuelModal();
-            showToast("Abastecimento registrado com sucesso!");
+            showToast(isEdit ? "Abastecimento atualizado com sucesso!" : "Abastecimento registrado com sucesso!");
             renderFuelWorkspace();
         }
 
