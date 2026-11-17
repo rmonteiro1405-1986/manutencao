@@ -783,7 +783,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_13_build12";
+        const APP_BUILD_ID = "v2026_11_17_build13";
         if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
             localStorage.removeItem('voyage_history');
             localStorage.removeItem('crosser_history');
@@ -828,7 +828,7 @@
                 title: "VW Voyage 1.6 Highline",
                 badge: "EA111 8V",
                 icon: "fa-car",
-                defaultKm: 104500,
+                defaultKm: 104450,
                 specLabel: "EA111 VHT 1.6 - VW 502.00 5W-40",
                 storageKeyHist: "voyage_history",
                 storageKeySched: "voyage_schedule",
@@ -856,7 +856,7 @@
                 title: "Yamaha XTZ 150 Crosser",
                 badge: "150cc BlueFlex",
                 icon: "fa-motorcycle",
-                defaultKm: 72450,
+                defaultKm: 74644,
                 specLabel: "Motor 150cc SOHC - Motul 5000+ 10W-40",
                 storageKeyHist: "crosser_history",
                 storageKeySched: "crosser_schedule",
@@ -2761,19 +2761,26 @@
         // Sincronização com Google Sheets
         async function syncWithGoogleSheets(showToastMsg = true) {
             if (!googleSheetsUrl) return;
+            const vehicleToSync = currentVehicle;
             const syncDot = document.getElementById('syncDot');
             const syncText = document.getElementById('syncText');
             if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
             if (syncText) syncText.innerText = "Sincronizando...";
-            if (showToastMsg) showToast(`Carregando ${currentVehicle} da nuvem...`);
+            if (showToastMsg) showToast(`Carregando ${vehicleToSync} da nuvem...`);
 
             try {
-                const res = await fetch(`${googleSheetsUrl}?veiculo=${currentVehicle}&_t=${Date.now()}`, {
+                const res = await fetch(`${googleSheetsUrl}?veiculo=${vehicleToSync}&_t=${Date.now()}`, {
                     method: 'GET',
                     redirect: 'follow',
                     cache: 'no-store'
                 });
                 const data = await res.json();
+
+                // Trava de segurança: Se o usuário trocou de veículo enquanto a rede respondia, descarta para não contaminar o odômetro/histórico
+                if (currentVehicle !== vehicleToSync || (data.veiculo && data.veiculo.toLowerCase() !== vehicleToSync.toLowerCase())) {
+                    return;
+                }
+
                 if (data.history && Array.isArray(data.history)) {
                     setActiveHistory(data.history);
                     lastSyncTimestamp = new Date().toISOString();
