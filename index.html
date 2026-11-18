@@ -893,7 +893,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_18_build17_autobackup";
+        const APP_BUILD_ID = "v2026_11_18_build18_fix_oil_and_consistency";
         localStorage.setItem('app_build_version', APP_BUILD_ID);
 
         // Variáveis de Estado
@@ -992,15 +992,15 @@
         // Cronogramas preventivos padrão recomendados
         const defaultSchedules = {
             Voyage: [
-                { id: 1001, year: "2026", title: "Kit Correia Dentada + Tensor (Urgência por tempo >5 anos)", km: 104500, date: "2026-11-15", value: 380, category: "Correias / Tensor", done: false },
-                { id: 1002, year: "2026", title: "Filtro de Combustível (4 anos de uso)", km: 104500, date: "2026-11-20", value: 45, category: "Filtros", done: false },
+                { id: 1001, year: "2026", title: "Kit Correia Dentada + Tensor (Urgência por tempo >5 anos)", km: 104500, date: "2026-11-15", value: 380, category: "Correias / Tensor", done: true },
+                { id: 1002, year: "2026", title: "Filtro de Combustível (4 anos de uso)", km: 104500, date: "2026-11-20", value: 45, category: "Filtros", done: true },
                 { id: 1003, year: "2026", title: "Revisão 105k: Óleo 5W-40, Freio DOT 4 e Direção Hidráulica", km: 105000, date: "2026-12-10", value: 390, category: "Motor / Óleo", done: false },
                 { id: 1004, year: "2027", title: "Filtro de Ar do Motor e Cabine", km: 110000, date: "2027-06-15", value: 65, category: "Filtros", done: false },
                 { id: 1005, year: "2027", title: "Revisão 115k: Óleo 5W-40 + Filtro de Óleo", km: 115000, date: "2027-12-10", value: 220, category: "Motor / Óleo", done: false },
                 { id: 1006, year: "2028", title: "Revisão 120k: Velas, Cabos, Freios e Alinhamento", km: 120000, date: "2028-10-20", value: 480, category: "Ignição / Elétrica", done: false }
             ],
             Crosser: [
-                { id: 2001, year: "2026", title: "Inspeção e Troca de Pastilhas e Patim de Freio", km: 73000, date: "2026-11-10", value: 95, category: "Freios", done: false },
+                { id: 2001, year: "2026", title: "Inspeção e Troca de Pastilhas e Patim de Freio", km: 73000, date: "2026-11-10", value: 95, category: "Freios", done: true },
                 { id: 2002, year: "2026", title: "Troca de Óleo Motul 5000+ 10W-40 + Filtro de Óleo (75.000 km)", km: 75000, date: "2026-12-15", value: 57, category: "Motor / Óleo", done: false },
                 { id: 2003, year: "2027", title: "Troca de Óleo Motul 5000+ 10W-40 (77.500 km)", km: 77500, date: "2027-04-10", value: 45, category: "Motor / Óleo", done: false },
                 { id: 2004, year: "2027", title: "Revisão 80k: Óleo, Filtro de Ar, Vela NGK e Lubrificação Relação", km: 80000, date: "2027-08-20", value: 160, category: "Motor / Óleo", done: false },
@@ -1011,43 +1011,65 @@
         // Classificador inteligente de categorias por palavras-chave
         function classifyService(service, vehicle) {
             if (!service) return 'Outros / Estética';
-            const s = service.toLowerCase();
+            const s = service.toLowerCase().trim();
             
-            if (s.includes('carro') || s.includes('moto') || s.includes('aquisi') || s.includes('compra') || 
-                s.includes('transferência') || s.includes('transferencia') || s.includes('documento') || 
+            // 1. Aquisição / Documentos oficiais
+            if (s === 'carro' || s === 'compra da moto' || s === 'compra do carro' || s.startsWith('compra ') ||
+                s.includes('aquisi') || s.includes('transferência') || s.includes('transferencia') || 
                 s.includes('ipva') || s.includes('licenciamento') || s.includes('dpvat') || s.includes('despachante')) {
                 return 'Aquisição / Doc';
             }
-            if (s.includes('óleo') || s.includes('oleo') || s.includes('lubrax') || s.includes('yamalube') || s.includes('motul') || 
-                s.includes('cabeçote') || s.includes('cabecote') || s.includes('válvula') || s.includes('valvula') || 
-                s.includes('tbi') || s.includes('junta') || s.includes('cárter') || s.includes('carter')) {
-                return 'Motor / Óleo';
+
+            // 2. Sistema GNV (prioritário sobre peças com válvula/cilindro)
+            if (s.includes('gnv') || s.includes('gás') || s.includes('cilindro') || 
+                s.includes('variador') || s.includes('sonda lambda') || s.includes('reteste')) {
+                return 'Sistema GNV';
             }
+
+            // 3. Embreagem e Câmbio / Transmissão (prioritário sobre menções a óleo de câmbio/caixa)
+            if (s.includes('embreagem') || s.includes('câmbio') || s.includes('cambio') || s.includes('caixa de marcha')) {
+                return vehicle === 'Voyage' ? 'Embreagem / Câmbio' : 'Transmissão / Relação';
+            }
+
+            // 4. Correias e Tensores
+            if (s.includes('correia') || s.includes('tensor') || s.includes('sincronizadora') || s.includes('dentada')) {
+                return 'Correias / Tensor';
+            }
+
+            // 5. Relação / Corrente (Moto)
+            if (s.includes('relação') || s.includes('relacao') || s.includes('corrente') || s.includes('pinhão') || 
+                s.includes('pinhao') || s.includes('coroa') || s.includes('transmissão') || s.includes('transmissao')) {
+                return 'Transmissão / Relação';
+            }
+
+            // 6. Freios
             if (s.includes('freio') || s.includes('pastilha') || s.includes('patim') || s.includes('disco') || 
                 s.includes('lona') || s.includes('sangria') || s.includes('dot 4') || s.includes('dot4') || s.includes('fluido de freio')) {
                 return 'Freios';
             }
-            if (s.includes('correia') || s.includes('tensor') || s.includes('sincronizadora') || s.includes('dentada')) {
-                return 'Correias / Tensor';
+
+            // 7. Filtros (específicos sem motor/óleo)
+            if (s.includes('filtro de ar') || s.includes('filtro ar') || s.includes('filtro de combustível') || 
+                s.includes('filtro combustivel') || s.includes('filtro comb') || s.includes('filtro arcond') || 
+                s.includes('filtro de ar da cabine') || s.includes('higieniza')) {
+                return 'Filtros';
             }
-            if (s.includes('relação') || s.includes('relacao') || s.includes('corrente') || s.includes('pinhão') || 
-                s.includes('pinhao') || s.includes('coroa') || s.includes('esticador') || s.includes('transmissão') || 
-                s.includes('transmissao')) {
-                return 'Transmissão / Relação';
+
+            // 8. Motor e Lubrificação
+            if (s.includes('óleo') || s.includes('oleo') || s.includes('lubrax') || s.includes('yamalube') || s.includes('motul') || 
+                s.includes('cabeçote') || s.includes('cabecote') || s.includes('válvula') || s.includes('valvula') || 
+                s.includes('tbi') || s.includes('junta') || s.includes('cárter') || s.includes('carter') || s.includes('tampa do óleo')) {
+                return 'Motor / Óleo';
             }
-            if (s.includes('embreagem') || s.includes('câmbio') || s.includes('cambio') || s.includes('caixa de marcha')) {
-                return vehicle === 'Voyage' ? 'Embreagem / Câmbio' : 'Transmissão / Relação';
-            }
+
+            // 9. Ignição e Elétrica
             if (s.includes('vela') || s.includes('bobina') || s.includes('cabo de vela') || s.includes('ignição') || 
                 s.includes('ignicao') || s.includes('bateria') || s.includes('alternador') || s.includes('lâmpada') || 
                 s.includes('lampada') || s.includes('farol') || s.includes('elétrica') || s.includes('eletrica')) {
                 return 'Ignição / Elétrica';
             }
-            if (s.includes('filtro de ar') || s.includes('filtro ar') || s.includes('filtro de combustível') || 
-                s.includes('filtro combustivel') || s.includes('filtro de combustivel') || s.includes('filtro comb') || 
-                s.includes('filtro arcond') || s.includes('filtro de ar da cabine') || s.includes('orbiair')) {
-                return 'Filtros';
-            }
+
+            // 10. Pneus e Suspensão
             if (s.includes('pneu') || s.includes('câmara') || s.includes('camara') || s.includes('roda') || 
                 s.includes('calota') || s.includes('alinhamento') || s.includes('balanceamento') || 
                 s.includes('suspensão') || s.includes('suspensao') || s.includes('amortecedor') || 
@@ -1055,13 +1077,12 @@
                 s.includes('coxim') || s.includes('batente') || s.includes('abs') || s.includes('sensor do abs') || s.includes('sensor de roda')) {
                 return 'Pneus / Suspensão';
             }
-            if (s.includes('gnv') || s.includes('gás') || s.includes('gas') || s.includes('cilindro') || 
-                s.includes('variador') || s.includes('sonda lambda')) {
-                return 'Sistema GNV';
-            }
+
+            // 11. Direção Hidráulica
             if (s.includes('direção') || s.includes('direcao')) {
                 return 'Direção Hidráulica';
             }
+
             return 'Outros / Estética';
         }
 
@@ -1075,9 +1096,9 @@
         }
 
         function isAcquisitionItem(item) {
-            const s = (item.service || '').toLowerCase();
-            const c = (item.category || '').toLowerCase();
-            return s.includes('carro') || s.includes('moto') || s.includes('aquisi') || s.includes('compra') || c.includes('aquisi');
+            const s = (item.service || '').toLowerCase().trim();
+            const c = (item.category || '').toLowerCase().trim();
+            return s === 'carro' || s === 'compra da moto' || s === 'compra do carro' || s.startsWith('compra ') || s.includes('aquisi') || c.includes('aquisi');
         }
 
         // Formatação precisa de datas (evita bug de UTC -1 dia no Brasil)
@@ -1121,11 +1142,23 @@
         function getActiveSchedule() {
             const key = vehicleConfigs[currentVehicle].storageKeySched;
             const saved = localStorage.getItem(key);
-            if (saved) return JSON.parse(saved);
-            // Semeia cronograma preventivo padrão se não existir
-            const def = defaultSchedules[currentVehicle] || [];
-            localStorage.setItem(key, JSON.stringify(def));
-            return def;
+            let list = saved ? JSON.parse(saved) : (defaultSchedules[currentVehicle] || []);
+            
+            // Reconciliação automática de pendências já executadas no histórico
+            let changed = false;
+            list = list.map(item => {
+                const sId = String(item.id);
+                // Voyage: Correia e Filtro de combustível foram trocados a 104.400 km
+                if ((sId === '1001' || sId === 'plan_voyage_1001') && !item.done) { item.done = true; changed = true; }
+                if ((sId === '1002' || sId === 'plan_voyage_1002') && !item.done) { item.done = true; changed = true; }
+                // Crosser: Pastilhas e patim foram trocados a 73.000 km
+                if ((sId === '2001' || sId === 'plan_crosser_2001') && !item.done) { item.done = true; changed = true; }
+                return item;
+            });
+            if (changed || !saved) {
+                localStorage.setItem(key, JSON.stringify(list));
+            }
+            return list;
         }
 
         function setActiveSchedule(data) {
@@ -1170,48 +1203,81 @@
         function getComponents() {
             const hist = getActiveHistory();
             if (currentVehicle === 'Voyage') {
-                const oil = getComponentLatest(hist, ['óleo', 'oleo'], ['caixa', 'câmbio', 'cambio', 'direção', 'direcao', 'freio', 'diferencial']) || { km: 100600, date: '2025-12-05' };
-                const timingBelt = getComponentLatest(hist, ['correia dentada', 'sincronizadora']) || { km: 70940, date: '2020-04-27' };
-                const fuelFilter = getComponentLatest(hist, ['filtro de combustível', 'filtro combustivel', 'filtro de combust', 'filtro comb']) || { km: 84000, date: '2022-12-05' };
+                // Exclusão estrita de tampa, vazamentos, vareta, bujão, sensores e óleos de transmissão/direção/freio
+                const oil = getComponentLatest(hist, 
+                    ['óleo', 'oleo'], 
+                    ['tampa', 'vazamento', 'caixa', 'câmbio', 'cambio', 'direção', 'direcao', 'freio', 'diferencial', 'vareta', 'sensor', 'junta', 'bujão', 'bujao']
+                ) || { km: 100600, date: '2025-12-05' };
+
+                const timingBelt = getComponentLatest(hist, 
+                    ['correia dentada', 'sincronizadora'], 
+                    ['mão de obra', 'mao de obra']
+                ) || { km: 104400, date: '2026-11-09' };
+
+                const fuelFilter = getComponentLatest(hist, 
+                    ['filtro de combustível', 'filtro combustivel', 'filtro de combust', 'filtro comb']
+                ) || { km: 104400, date: '2026-11-09' };
+
                 const brakeFluid = getComponentLatest(hist, ['fluido de freio']) || { km: 96367, date: '2024-12-27' };
-                const psFluid = getComponentLatest(hist, ['direção hidráulica', 'direcao hidraulica']) || { km: 84000, date: '2022-12-05' };
-                const sparkPlugs = getComponentLatest(hist, ['vela']) || { km: 104000, date: '2026-09-07' };
-                const airFilter = getComponentLatest(hist, ['filtro de ar do motor', 'filtro de ar motor'], ['cabine', 'arcond', 'ar-cond']) || { km: 99170, date: '2025-07-24' };
-                const cabinFilter = getComponentLatest(hist, ['filtro de ar da cabine', 'filtro do arcond', 'arcond']) || { km: 102775, date: '2026-05-16' };
+                const psFluid = getComponentLatest(hist, ['direção hidráulica', 'direcao hidraulica'], ['bomba', 'caixa', 'setor']) || { km: 84000, date: '2022-12-05' };
+                const sparkPlugs = getComponentLatest(hist, ['vela'], ['bobina', 'cabo do sensor']) || { km: 104000, date: '2026-09-07' };
+                
+                const airFilter = getComponentLatest(hist, 
+                    ['filtro de ar do motor', 'filtro de ar motor', 'filtro de ar', 'filtro ar'], 
+                    ['cabine', 'arcond', 'ar-cond', 'ar cond', 'higieniza', 'higienização']
+                ) || { km: 99170, date: '2025-07-24' };
+
+                const cabinFilter = getComponentLatest(hist, 
+                    ['filtro de ar da cabine', 'filtro do arcond', 'filtro arcond', 'arcond', 'ar condicionado', 'cabine', 'higienizador', 'higienização']
+                ) || { km: 102775, date: '2026-05-16' };
+
                 const battery = getComponentLatest(hist, ['bateria']) || { km: 101942, date: '2026-01-31' };
 
                 return [
+                    { name: "Óleo 5W-40 + Filtro", lastKm: oil.km, lastDate: oil.date, maxKm: 10000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 218 },
                     { name: "Correia Dentada + Tensor", lastKm: timingBelt.km, lastDate: timingBelt.date, maxKm: 50000, maxMonths: 48, critical: true, category: "Correias / Tensor", suggestedCost: 380 },
                     { name: "Filtro de Combustível", lastKm: fuelFilter.km, lastDate: fuelFilter.date, maxKm: 15000, maxMonths: 24, critical: true, category: "Filtros", suggestedCost: 45 },
-                    { name: "Óleo 5W-40 + Filtro", lastKm: oil.km, lastDate: oil.date, maxKm: 10000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 218 },
-                    { name: "Fluido da Direção Hidráulica", lastKm: psFluid.km, lastDate: psFluid.date, maxKm: 40000, maxMonths: 48, critical: false, category: "Direção Hidráulica", suggestedCost: 85 },
                     { name: "Fluido de Freio (DOT 4)", lastKm: brakeFluid.km, lastDate: brakeFluid.date, maxKm: 30000, maxMonths: 24, critical: false, category: "Freios", suggestedCost: 50 },
+                    { name: "Fluido da Direção Hidráulica", lastKm: psFluid.km, lastDate: psFluid.date, maxKm: 40000, maxMonths: 48, critical: false, category: "Direção Hidráulica", suggestedCost: 85 },
                     { name: "Filtro de Ar do Motor", lastKm: airFilter.km, lastDate: airFilter.date, maxKm: 15000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 25 },
                     { name: "Filtro de Ar da Cabine", lastKm: cabinFilter.km, lastDate: cabinFilter.date, maxKm: 15000, maxMonths: 12, critical: false, category: "Filtros", suggestedCost: 20 },
                     { name: "Velas de Ignição", lastKm: sparkPlugs.km, lastDate: sparkPlugs.date, maxKm: 20000, maxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 169 },
-                    { name: "Bateria (60Ah)", lastKm: battery.km, lastDate: battery.date, maxKm: 50000, maxMonths: 36, critical: false, category: "Ignição / Elétrica", suggestedCost: 300 }
+                    { name: "Bateria (60Ah)", lastKm: battery.km, lastDate: battery.date, maxKm: 50000, maxMonths: 36, critical: false, category: "Ignição / Elétrica", suggestedCost: 390 }
                 ];
             } else {
-                const oil = getComponentLatest(hist, ['óleo', 'oleo', 'motul', 'yamalube']) || { km: 72450, date: '2026-09-07' };
-                const oilFilter = getComponentLatest(hist, ['filtro de óleo', 'filtro do óleo']) || { km: 72450, date: '2026-09-07' };
-                const relacao = getComponentLatest(hist, ['relação', 'relacao', 'corrente', 'kit de transmissão']) || { km: 66250, date: '2026-01-08' };
-                const freio = getComponentLatest(hist, ['pastilha', 'patim', 'freio', 'lona']) || { km: 53600, date: '2024-09-16' };
+                const oil = getComponentLatest(hist, 
+                    ['óleo', 'oleo', 'motul', 'yamalube'], 
+                    ['filtro do óleo', 'filtro de óleo', 'filtro do oleo', 'filtro de oleo', 'vareta', 'oring', 'caixa', 'câmbio', 'cambio']
+                ) || { km: 74644, date: '2026-11-11' };
+
+                const oilFilter = getComponentLatest(hist, 
+                    ['filtro de óleo', 'filtro do óleo', 'filtro de oleo', 'filtro do oleo']
+                ) || { km: 72450, date: '2026-09-07' };
+
+                const relacao = getComponentLatest(hist, 
+                    ['relação', 'relacao', 'corrente', 'kit de transmissão', 'kit de transmissao']
+                ) || { km: 66250, date: '2026-01-08' };
+
+                const freio = getComponentLatest(hist, 
+                    ['pastilha', 'patim', 'freio', 'lona']
+                ) || { km: 73000, date: '2026-11-02' };
+
                 const pneuTraseiro = getComponentLatest(hist, ['pneu traseiro']) || { km: 65100, date: '2025-11-13' };
                 const pneuDianteiro = getComponentLatest(hist, ['pneu dianteiro']) || { km: 65100, date: '2025-11-13' };
                 const vela = getComponentLatest(hist, ['vela']) || { km: 69675, date: '2026-06-06' };
-                const filtroAr = getComponentLatest(hist, ['filtro de ar']) || { km: 67400, date: '2026-03-03' };
-                const filtroComb = getComponentLatest(hist, ['filtro de combustível', 'filtro combustivel']) || { km: 67400, date: '2026-03-03' };
+                const filtroAr = getComponentLatest(hist, ['filtro de ar', 'filtro ar']) || { km: 67400, date: '2026-03-03' };
+                const filtroComb = getComponentLatest(hist, ['filtro de combustível', 'filtro combustivel', 'filtro de combust', 'filtro comb']) || { km: 67400, date: '2026-03-03' };
 
                 return [
                     { name: "Pastilhas e Patim de Freio", lastKm: freio.km, lastDate: freio.date, maxKm: 12000, maxMonths: 24, critical: true, category: "Freios", suggestedCost: 95 },
-                    { name: "Óleo do Motor (Motul 5000+ 10W-40)", lastKm: oil.km, lastDate: oil.date, maxKm: 2500, maxMonths: 6, critical: true, category: "Motor / Óleo", suggestedCost: 45 },
+                    { name: "Óleo do Motor (Motul 5000+ 10W-40)", lastKm: oil.km, lastDate: oil.date, maxKm: 2500, maxMonths: 6, critical: true, category: "Motor / Óleo", suggestedCost: 47 },
                     { name: "Filtro de Óleo", lastKm: oilFilter.km, lastDate: oilFilter.date, maxKm: 5000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 15 },
                     { name: "Kit de Relação (Coroa/Pinhão/Corrente)", lastKm: relacao.km, lastDate: relacao.date, maxKm: 18000, maxMonths: 36, critical: false, category: "Transmissão / Relação", suggestedCost: 165 },
                     { name: "Pneu Traseiro (110/90-17)", lastKm: pneuTraseiro.km, lastDate: pneuTraseiro.date, maxKm: 12000, maxMonths: 36, critical: false, category: "Pneus / Suspensão", suggestedCost: 220 },
                     { name: "Pneu Dianteiro (90/90-19)", lastKm: pneuDianteiro.km, lastDate: pneuDianteiro.date, maxKm: 20000, maxMonths: 48, critical: false, category: "Pneus / Suspensão", suggestedCost: 200 },
                     { name: "Vela de Ignição (NGK CPR8EA)", lastKm: vela.km, lastDate: vela.date, maxKm: 10000, maxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 75 },
                     { name: "Filtro de Ar do Motor", lastKm: filtroAr.km, lastDate: filtroAr.date, maxKm: 10000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 35 },
-                    { name: "Filtro de Combustível", lastKm: filtroComb.km, lastDate: filtroComb.date, maxKm: 15000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 25 }
+                    { name: "Filtro de Combustível", lastKm: filtroComb.km, lastDate: filtroComb.date, maxKm: 15000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 20 }
                 ];
             }
         }
