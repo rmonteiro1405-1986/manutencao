@@ -87,7 +87,7 @@
                     <i class="fa-solid fa-gas-pump"></i> Abastecer
                 </button>
                 <button onclick="openModal('realizada')" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition">
-                    <i class="fa-solid fa-plus"></i> Nova Manutenção
+                    <i class="fa-solid fa-wrench"></i> Manutenção
                 </button>
                 <button onclick="openSyncModal()" id="btnSyncStatus" title="Status da sincronização com Supabase" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-300">
                     <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -893,7 +893,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_18_build18_fix_oil_and_consistency";
+        const APP_BUILD_ID = "v2026_11_18_build19_rename_manut_btn";
         localStorage.setItem('app_build_version', APP_BUILD_ID);
 
         // Variáveis de Estado
@@ -1416,8 +1416,8 @@
                             </p>
                         </div>
                     </div>
-                    <button onclick="openModal('realizada')" class="whitespace-nowrap text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg transition">
-                        + Nova Manutenção
+                    <button onclick="openModal('realizada')" class="whitespace-nowrap text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-wrench text-blue-400"></i> Manutenção
                     </button>
                 `;
             }
