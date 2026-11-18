@@ -50,6 +50,58 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0F172A; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+            }
+            header, main, #modalBackups, #modalFuel, #modalForm, #modalIpva, #modalComponentLimits, #toast, .no-print {
+                display: none !important;
+            }
+            #modalDossier {
+                position: static !important;
+                display: block !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+                inset: auto !important;
+            }
+            .no-print-bg {
+                background: #ffffff !important;
+                border: none !important;
+                box-shadow: none !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #dossierPrintArea {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+            }
+            #dossierPrintArea * {
+                color: #0f172a !important;
+                border-color: #cbd5e1 !important;
+            }
+            .dossier-card {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            table {
+                page-break-inside: auto;
+                width: 100% !important;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            thead {
+                display: table-header-group;
+            }
+        }
     </style>
 </head>
 <body class="bg-darkbg text-slate-100 min-h-screen pb-16">
@@ -116,6 +168,16 @@
                                 <div>
                                     <div class="font-medium text-white">Central de Backups</div>
                                     <div class="text-[10px] text-slate-400">Rotina semanal automática &amp; JSON</div>
+                                </div>
+                            </button>
+                            <button onclick="openDossierModal(); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2.5 transition">
+                                <i class="fa-solid fa-file-pdf text-rose-400 w-4 text-center"></i>
+                                <div>
+                                    <div class="font-medium text-white flex items-center gap-1.5">
+                                        Dossiê em PDF
+                                        <span class="text-[9px] bg-rose-500/20 text-rose-300 px-1 py-0.2 rounded font-normal">Livreto</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">Histórico completo para impressão ou venda</div>
                                 </div>
                             </button>
                         </div>
@@ -885,6 +947,105 @@
         </div>
     </div>
 
+    <!-- Modal: Configuração de Metas / Limites de Componentes -->
+    <div id="modalComponentLimits" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <button onclick="closeComponentLimitsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Ajustar Metas de Vida Útil</h3>
+                    <p class="text-xs text-slate-400">Personalize os limites máximos de KM e tempo</p>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 space-y-1.5">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Componente:</span>
+                    <span class="font-bold text-white" id="limitModalCompName">-</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Última troca registrada:</span>
+                    <span class="font-mono text-slate-200" id="limitModalLastInfo">-</span>
+                </div>
+            </div>
+
+            <form id="formComponentLimits" onsubmit="handleSaveComponentLimits(event)" class="mt-4 space-y-4">
+                <input type="hidden" id="limitCompNameInput">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">
+                        Limite Máximo de Quilometragem (KM) <span class="text-rose-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="limitMaxKmInput" required step="100" min="500" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono font-bold text-sm focus:outline-none focus:border-blue-500">
+                        <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-mono">km</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1" id="limitDefaultKmHint">Padrão original: - km</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">
+                        Limite Máximo de Tempo (Meses) <span class="text-rose-400">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="limitMaxMonthsInput" required step="1" min="1" max="120" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono font-bold text-sm focus:outline-none focus:border-blue-500">
+                        <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-mono">meses</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1" id="limitDefaultMonthsHint">Padrão original: - meses</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                    <button type="button" onclick="handleResetComponentLimits()" class="text-xs text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-rotate-left"></i> Restaurar Padrão
+                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeComponentLimitsModal()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-check"></i> Salvar Metas
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Dossiê Completo / Livreto de Bordo (Impressão / PDF) -->
+    <div id="modalDossier" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto p-2 sm:p-6 hidden">
+        <div class="max-w-4xl mx-auto bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden my-4 no-print-bg">
+            <!-- Barra Superior de Controle do Dossiê -->
+            <div class="p-4 bg-slate-800/90 border-b border-slate-700 flex flex-wrap items-center justify-between gap-3 no-print">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Dossiê Completo do Veículo (Livreto de Bordo)</h3>
+                        <p class="text-xs text-slate-400">Pronto para impressão em papel ou gravação direta em PDF</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="printDossier()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg transition">
+                        <i class="fa-solid fa-print"></i> Imprimir / Salvar em PDF
+                    </button>
+                    <button onclick="closeDossierModal()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg transition">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Folha do Dossiê Imprimível -->
+            <div id="dossierPrintArea" class="p-6 sm:p-8 bg-slate-900 text-slate-200 text-xs space-y-6">
+                <!-- Preenchido dinamicamente via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-blue-500 text-white px-4 py-3 rounded-lg shadow-xl hidden transition transform duration-300 z-50 text-xs flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-blue-400" id="toastIcon"></i>
@@ -893,7 +1054,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_18_build19_rename_manut_btn";
+        const APP_BUILD_ID = "v2026_11_18_build20_dossier_and_custom_limits";
         localStorage.setItem('app_build_version', APP_BUILD_ID);
 
         // Variáveis de Estado
@@ -1199,9 +1360,55 @@
             return latest;
         }
 
+        // ==========================================
+        // GERENCIAMENTO DE LIMITES DE VIDA ÚTIL (KM / MESES)
+        // ==========================================
+        function getCustomComponentLimits(vehicle = currentVehicle) {
+            try {
+                const raw = localStorage.getItem(`garage_custom_limits_${vehicle}`);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                console.warn("Erro ao ler limites personalizados:", e);
+                return {};
+            }
+        }
+
+        function saveCustomComponentLimit(vehicle, compName, maxKm, maxMonths) {
+            try {
+                const limits = getCustomComponentLimits(vehicle);
+                limits[compName] = {
+                    maxKm: Number(maxKm),
+                    maxMonths: Number(maxMonths),
+                    updatedAt: new Date().toISOString()
+                };
+                localStorage.setItem(`garage_custom_limits_${vehicle}`, JSON.stringify(limits));
+                return true;
+            } catch (e) {
+                console.error("Erro ao salvar limite personalizado:", e);
+                return false;
+            }
+        }
+
+        function resetCustomComponentLimit(vehicle, compName) {
+            try {
+                const limits = getCustomComponentLimits(vehicle);
+                if (limits[compName]) {
+                    delete limits[compName];
+                    localStorage.setItem(`garage_custom_limits_${vehicle}`, JSON.stringify(limits));
+                }
+                return true;
+            } catch (e) {
+                console.error("Erro ao resetar limite personalizado:", e);
+                return false;
+            }
+        }
+
         // Definição e monitoramento dos componentes com base nos dados reais
         function getComponents() {
             const hist = getActiveHistory();
+            const customLimits = getCustomComponentLimits(currentVehicle);
+            let rawList = [];
+
             if (currentVehicle === 'Voyage') {
                 // Exclusão estrita de tampa, vazamentos, vareta, bujão, sensores e óleos de transmissão/direção/freio
                 const oil = getComponentLatest(hist, 
@@ -1233,16 +1440,16 @@
 
                 const battery = getComponentLatest(hist, ['bateria']) || { km: 101942, date: '2026-01-31' };
 
-                return [
-                    { name: "Óleo 5W-40 + Filtro", lastKm: oil.km, lastDate: oil.date, maxKm: 10000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 218 },
-                    { name: "Correia Dentada + Tensor", lastKm: timingBelt.km, lastDate: timingBelt.date, maxKm: 50000, maxMonths: 48, critical: true, category: "Correias / Tensor", suggestedCost: 380 },
-                    { name: "Filtro de Combustível", lastKm: fuelFilter.km, lastDate: fuelFilter.date, maxKm: 15000, maxMonths: 24, critical: true, category: "Filtros", suggestedCost: 45 },
-                    { name: "Fluido de Freio (DOT 4)", lastKm: brakeFluid.km, lastDate: brakeFluid.date, maxKm: 30000, maxMonths: 24, critical: false, category: "Freios", suggestedCost: 50 },
-                    { name: "Fluido da Direção Hidráulica", lastKm: psFluid.km, lastDate: psFluid.date, maxKm: 40000, maxMonths: 48, critical: false, category: "Direção Hidráulica", suggestedCost: 85 },
-                    { name: "Filtro de Ar do Motor", lastKm: airFilter.km, lastDate: airFilter.date, maxKm: 15000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 25 },
-                    { name: "Filtro de Ar da Cabine", lastKm: cabinFilter.km, lastDate: cabinFilter.date, maxKm: 15000, maxMonths: 12, critical: false, category: "Filtros", suggestedCost: 20 },
-                    { name: "Velas de Ignição", lastKm: sparkPlugs.km, lastDate: sparkPlugs.date, maxKm: 20000, maxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 169 },
-                    { name: "Bateria (60Ah)", lastKm: battery.km, lastDate: battery.date, maxKm: 50000, maxMonths: 36, critical: false, category: "Ignição / Elétrica", suggestedCost: 390 }
+                rawList = [
+                    { name: "Óleo 5W-40 + Filtro", lastKm: oil.km, lastDate: oil.date, defaultMaxKm: 10000, defaultMaxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 218 },
+                    { name: "Correia Dentada + Tensor", lastKm: timingBelt.km, lastDate: timingBelt.date, defaultMaxKm: 50000, defaultMaxMonths: 48, critical: true, category: "Correias / Tensor", suggestedCost: 380 },
+                    { name: "Filtro de Combustível", lastKm: fuelFilter.km, lastDate: fuelFilter.date, defaultMaxKm: 15000, defaultMaxMonths: 24, critical: true, category: "Filtros", suggestedCost: 45 },
+                    { name: "Fluido de Freio (DOT 4)", lastKm: brakeFluid.km, lastDate: brakeFluid.date, defaultMaxKm: 30000, defaultMaxMonths: 24, critical: false, category: "Freios", suggestedCost: 50 },
+                    { name: "Fluido da Direção Hidráulica", lastKm: psFluid.km, lastDate: psFluid.date, defaultMaxKm: 40000, defaultMaxMonths: 48, critical: false, category: "Direção Hidráulica", suggestedCost: 85 },
+                    { name: "Filtro de Ar do Motor", lastKm: airFilter.km, lastDate: airFilter.date, defaultMaxKm: 15000, defaultMaxMonths: 24, critical: false, category: "Filtros", suggestedCost: 25 },
+                    { name: "Filtro de Ar da Cabine", lastKm: cabinFilter.km, lastDate: cabinFilter.date, defaultMaxKm: 15000, defaultMaxMonths: 12, critical: false, category: "Filtros", suggestedCost: 20 },
+                    { name: "Velas de Ignição", lastKm: sparkPlugs.km, lastDate: sparkPlugs.date, defaultMaxKm: 20000, defaultMaxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 169 },
+                    { name: "Bateria (60Ah)", lastKm: battery.km, lastDate: battery.date, defaultMaxKm: 50000, defaultMaxMonths: 36, critical: false, category: "Ignição / Elétrica", suggestedCost: 390 }
                 ];
             } else {
                 const oil = getComponentLatest(hist, 
@@ -1268,18 +1475,33 @@
                 const filtroAr = getComponentLatest(hist, ['filtro de ar', 'filtro ar']) || { km: 67400, date: '2026-03-03' };
                 const filtroComb = getComponentLatest(hist, ['filtro de combustível', 'filtro combustivel', 'filtro de combust', 'filtro comb']) || { km: 67400, date: '2026-03-03' };
 
-                return [
-                    { name: "Pastilhas e Patim de Freio", lastKm: freio.km, lastDate: freio.date, maxKm: 12000, maxMonths: 24, critical: true, category: "Freios", suggestedCost: 95 },
-                    { name: "Óleo do Motor (Motul 5000+ 10W-40)", lastKm: oil.km, lastDate: oil.date, maxKm: 2500, maxMonths: 6, critical: true, category: "Motor / Óleo", suggestedCost: 47 },
-                    { name: "Filtro de Óleo", lastKm: oilFilter.km, lastDate: oilFilter.date, maxKm: 5000, maxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 15 },
-                    { name: "Kit de Relação (Coroa/Pinhão/Corrente)", lastKm: relacao.km, lastDate: relacao.date, maxKm: 18000, maxMonths: 36, critical: false, category: "Transmissão / Relação", suggestedCost: 165 },
-                    { name: "Pneu Traseiro (110/90-17)", lastKm: pneuTraseiro.km, lastDate: pneuTraseiro.date, maxKm: 12000, maxMonths: 36, critical: false, category: "Pneus / Suspensão", suggestedCost: 220 },
-                    { name: "Pneu Dianteiro (90/90-19)", lastKm: pneuDianteiro.km, lastDate: pneuDianteiro.date, maxKm: 20000, maxMonths: 48, critical: false, category: "Pneus / Suspensão", suggestedCost: 200 },
-                    { name: "Vela de Ignição (NGK CPR8EA)", lastKm: vela.km, lastDate: vela.date, maxKm: 10000, maxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 75 },
-                    { name: "Filtro de Ar do Motor", lastKm: filtroAr.km, lastDate: filtroAr.date, maxKm: 10000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 35 },
-                    { name: "Filtro de Combustível", lastKm: filtroComb.km, lastDate: filtroComb.date, maxKm: 15000, maxMonths: 24, critical: false, category: "Filtros", suggestedCost: 20 }
+                rawList = [
+                    { name: "Pastilhas e Patim de Freio", lastKm: freio.km, lastDate: freio.date, defaultMaxKm: 12000, defaultMaxMonths: 24, critical: true, category: "Freios", suggestedCost: 95 },
+                    { name: "Óleo do Motor (Motul 5000+ 10W-40)", lastKm: oil.km, lastDate: oil.date, defaultMaxKm: 2500, defaultMaxMonths: 6, critical: true, category: "Motor / Óleo", suggestedCost: 47 },
+                    { name: "Filtro de Óleo", lastKm: oilFilter.km, lastDate: oilFilter.date, defaultMaxKm: 5000, defaultMaxMonths: 12, critical: false, category: "Motor / Óleo", suggestedCost: 15 },
+                    { name: "Kit de Relação (Coroa/Pinhão/Corrente)", lastKm: relacao.km, lastDate: relacao.date, defaultMaxKm: 18000, defaultMaxMonths: 36, critical: false, category: "Transmissão / Relação", suggestedCost: 165 },
+                    { name: "Pneu Traseiro (110/90-17)", lastKm: pneuTraseiro.km, lastDate: pneuTraseiro.date, defaultMaxKm: 12000, defaultMaxMonths: 36, critical: false, category: "Pneus / Suspensão", suggestedCost: 220 },
+                    { name: "Pneu Dianteiro (90/90-19)", lastKm: pneuDianteiro.km, lastDate: pneuDianteiro.date, defaultMaxKm: 20000, defaultMaxMonths: 48, critical: false, category: "Pneus / Suspensão", suggestedCost: 200 },
+                    { name: "Vela de Ignição (NGK CPR8EA)", lastKm: vela.km, lastDate: vela.date, defaultMaxKm: 10000, defaultMaxMonths: 24, critical: false, category: "Ignição / Elétrica", suggestedCost: 75 },
+                    { name: "Filtro de Ar do Motor", lastKm: filtroAr.km, lastDate: filtroAr.date, defaultMaxKm: 10000, defaultMaxMonths: 24, critical: false, category: "Filtros", suggestedCost: 35 },
+                    { name: "Filtro de Combustível", lastKm: filtroComb.km, lastDate: filtroComb.date, defaultMaxKm: 15000, defaultMaxMonths: 24, critical: false, category: "Filtros", suggestedCost: 20 }
                 ];
             }
+
+            return rawList.map(c => {
+                const custom = customLimits[c.name];
+                const maxKm = custom && custom.maxKm ? Number(custom.maxKm) : c.defaultMaxKm;
+                const maxMonths = custom && custom.maxMonths ? Number(custom.maxMonths) : c.defaultMaxMonths;
+                const isCustom = !!(custom && (Number(custom.maxKm) !== c.defaultMaxKm || Number(custom.maxMonths) !== c.defaultMaxMonths));
+                return {
+                    ...c,
+                    maxKm,
+                    maxMonths,
+                    defaultMaxKm: c.defaultMaxKm,
+                    defaultMaxMonths: c.defaultMaxMonths,
+                    isCustom
+                };
+            });
         }
 
         // Cálculo de desgaste considerando KM e Tempo
@@ -1323,25 +1545,43 @@
                 grid.innerHTML += `
                     <div onclick="openModalWithService('${c.name}', ${c.suggestedCost || 0}, '${c.category}')" 
                          title="Clique para registrar a troca de ${c.name}"
-                         class="bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 hover:border-blue-500/60 p-3.5 rounded-lg flex flex-col justify-between cursor-pointer transition group">
+                         class="bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 hover:border-blue-500/60 p-3.5 rounded-lg flex flex-col justify-between cursor-pointer transition group relative">
                         <div>
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h4 class="text-xs font-bold text-white group-hover:text-blue-400 transition flex items-center gap-1.5">
-                                        <span>${c.name}</span>
-                                        <i class="fa-solid fa-plus text-[10px] opacity-0 group-hover:opacity-100 transition text-blue-400"></i>
+                            <div class="flex justify-between items-start gap-2">
+                                <div class="min-w-0 pr-1">
+                                    <h4 class="text-xs font-bold text-white group-hover:text-blue-400 transition flex items-center gap-1.5 truncate">
+                                        <span class="truncate">${c.name}</span>
+                                        <i class="fa-solid fa-plus text-[10px] opacity-0 group-hover:opacity-100 transition text-blue-400 shrink-0"></i>
                                     </h4>
                                     <span class="text-[10px] text-slate-400">Última troca: ${c.lastKm.toLocaleString('pt-BR')} km (${formatDateBR(c.lastDate)})</span>
                                 </div>
-                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColor}">${statusText}</span>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    ${c.isCustom ? `<span class="text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.2 rounded font-medium" title="Meta de vida útil personalizada pelo usuário">Ajustado</span>` : ''}
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${badgeColor}">${statusText}</span>
+                                    <button type="button" onclick="event.stopPropagation(); openComponentLimitsModal('${c.name}')" title="Ajustar limites de KM e Tempo de ${c.name}" class="w-6 h-6 rounded bg-slate-800/90 hover:bg-slate-700 hover:text-white text-slate-400 flex items-center justify-center transition border border-slate-700 shadow-sm">
+                                        <i class="fa-solid fa-sliders text-[10px]"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden">
                                 <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${wear}%"></div>
                             </div>
                         </div>
                         <div class="flex justify-between items-center text-[10px] text-slate-400 mt-2 pt-1 border-t border-slate-800">
-                            <span>Rodados: <b class="text-slate-200">${kmDriven.toLocaleString('pt-BR')} km</b> / ${c.maxKm.toLocaleString('pt-BR')} km</span>
-                            <span>Tempo: <b class="text-slate-200">${months}m</b> / ${c.maxMonths}m</span>
+                            <span class="flex items-center gap-1">
+                                <span>Rodados: <b class="text-slate-200">${kmDriven.toLocaleString('pt-BR')} km</b> /</span>
+                                <button type="button" onclick="event.stopPropagation(); openComponentLimitsModal('${c.name}')" title="Clique para alterar a meta máxima de KM" class="hover:text-blue-400 hover:underline font-semibold text-slate-300 flex items-center gap-0.5 transition bg-slate-800/40 hover:bg-slate-800 px-1 py-0.5 rounded border border-transparent hover:border-slate-700">
+                                    <span>${c.maxKm.toLocaleString('pt-BR')} km</span>
+                                    <i class="fa-solid fa-pen text-[8px] opacity-60"></i>
+                                </button>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span>Tempo: <b class="text-slate-200">${months}m</b> /</span>
+                                <button type="button" onclick="event.stopPropagation(); openComponentLimitsModal('${c.name}')" title="Clique para alterar a meta máxima de Tempo (meses)" class="hover:text-blue-400 hover:underline font-semibold text-slate-300 flex items-center gap-0.5 transition bg-slate-800/40 hover:bg-slate-800 px-1 py-0.5 rounded border border-transparent hover:border-slate-700">
+                                    <span>${c.maxMonths}m</span>
+                                    <i class="fa-solid fa-pen text-[8px] opacity-60"></i>
+                                </button>
+                            </span>
                         </div>
                     </div>
                 `;
@@ -2436,6 +2676,8 @@
                 crosserSchedule: localStorage.getItem('crosser_schedule') ? JSON.parse(localStorage.getItem('crosser_schedule')) : [],
                 voyageFuelings: localStorage.getItem('voyage_fuelings') ? JSON.parse(localStorage.getItem('voyage_fuelings')) : [],
                 crosserFuelings: localStorage.getItem('crosser_fuelings') ? JSON.parse(localStorage.getItem('crosser_fuelings')) : [],
+                voyageCustomLimits: localStorage.getItem('garage_custom_limits_Voyage') ? JSON.parse(localStorage.getItem('garage_custom_limits_Voyage')) : {},
+                crosserCustomLimits: localStorage.getItem('garage_custom_limits_Crosser') ? JSON.parse(localStorage.getItem('garage_custom_limits_Crosser')) : {},
                 exportDate: new Date().toISOString()
             };
         }
@@ -2590,6 +2832,8 @@
             if (data.crosserSchedule) localStorage.setItem('crosser_schedule', JSON.stringify(data.crosserSchedule));
             if (data.voyageFuelings) localStorage.setItem('voyage_fuelings', JSON.stringify(data.voyageFuelings));
             if (data.crosserFuelings) localStorage.setItem('crosser_fuelings', JSON.stringify(data.crosserFuelings));
+            if (data.voyageCustomLimits) localStorage.setItem('garage_custom_limits_Voyage', JSON.stringify(data.voyageCustomLimits));
+            if (data.crosserCustomLimits) localStorage.setItem('garage_custom_limits_Crosser', JSON.stringify(data.crosserCustomLimits));
             if (data.activeVehicle) localStorage.setItem('active_vehicle', data.activeVehicle);
 
             if (sbClient) {
@@ -2638,6 +2882,316 @@
             };
             reader.readAsText(file);
             event.target.value = '';
+        }
+
+        // ==========================================
+        // GERENCIAMENTO DO MODAL DE LIMITES DE COMPONENTES
+        // ==========================================
+        let currentEditingComponent = null;
+
+        function openComponentLimitsModal(compName) {
+            const comps = getComponents();
+            const comp = comps.find(c => c.name === compName);
+            if (!comp) return;
+
+            currentEditingComponent = compName;
+
+            const nameEl = document.getElementById('limitModalCompName');
+            const lastEl = document.getElementById('limitModalLastInfo');
+            const compInput = document.getElementById('limitCompNameInput');
+            const kmInput = document.getElementById('limitMaxKmInput');
+            const monthsInput = document.getElementById('limitMaxMonthsInput');
+            const defaultKmEl = document.getElementById('limitDefaultKmHint');
+            const defaultMonthsEl = document.getElementById('limitDefaultMonthsHint');
+
+            if (nameEl) nameEl.innerText = comp.name;
+            if (lastEl) lastEl.innerText = `${comp.lastKm.toLocaleString('pt-BR')} km em ${formatDateBR(comp.lastDate)}`;
+            if (compInput) compInput.value = comp.name;
+            if (kmInput) kmInput.value = comp.maxKm;
+            if (monthsInput) monthsInput.value = comp.maxMonths;
+            if (defaultKmEl) defaultKmEl.innerText = `Padrão de fábrica: ${comp.defaultMaxKm.toLocaleString('pt-BR')} km`;
+            if (defaultMonthsEl) defaultMonthsEl.innerText = `Padrão de fábrica: ${comp.defaultMaxMonths} meses`;
+
+            const modal = document.getElementById('modalComponentLimits');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeComponentLimitsModal() {
+            const modal = document.getElementById('modalComponentLimits');
+            if (modal) modal.classList.add('hidden');
+            currentEditingComponent = null;
+        }
+
+        function handleSaveComponentLimits(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (!currentEditingComponent) return;
+
+            const kmInput = document.getElementById('limitMaxKmInput');
+            const monthsInput = document.getElementById('limitMaxMonthsInput');
+            const maxKm = parseInt(kmInput ? kmInput.value : 0, 10);
+            const maxMonths = parseInt(monthsInput ? monthsInput.value : 0, 10);
+
+            if (isNaN(maxKm) || maxKm <= 0) {
+                alert("Por favor, informe uma quilometragem máxima válida (maior que zero).");
+                return;
+            }
+            if (isNaN(maxMonths) || maxMonths <= 0) {
+                alert("Por favor, informe um tempo máximo em meses válido (maior que zero).");
+                return;
+            }
+
+            saveCustomComponentLimit(currentVehicle, currentEditingComponent, maxKm, maxMonths);
+            renderComponents();
+            renderBannerAndTips();
+            renderSummaryStats();
+            showToast(`Metas de "${currentEditingComponent}" atualizadas: ${maxKm.toLocaleString('pt-BR')} km / ${maxMonths}m`);
+            closeComponentLimitsModal();
+        }
+
+        function handleResetComponentLimits() {
+            if (!currentEditingComponent) return;
+            resetCustomComponentLimit(currentVehicle, currentEditingComponent);
+            renderComponents();
+            renderBannerAndTips();
+            renderSummaryStats();
+            showToast(`Metas de "${currentEditingComponent}" restauradas para o padrão de fábrica!`);
+            closeComponentLimitsModal();
+        }
+
+        // ==========================================
+        // DOSSIÊ EM PDF / LIVRETO DE BORDO PARA VENDA
+        // ==========================================
+        function openDossierModal() {
+            renderDossierContent();
+            const modal = document.getElementById('modalDossier');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeDossierModal() {
+            const modal = document.getElementById('modalDossier');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function printDossier() {
+            window.print();
+        }
+
+        function renderDossierContent() {
+            const container = document.getElementById('dossierPrintArea');
+            if (!container) return;
+
+            const cfg = vehicleConfigs[currentVehicle];
+            const hist = getActiveHistory();
+            const fuelings = getActiveFuelings();
+            const comps = getComponents();
+
+            // Ordena manutenções cronologicamente (decrescente: mais recentes primeiro)
+            const sortedHist = [...hist].sort((a, b) => {
+                const dateDiff = new Date(b.date || 0) - new Date(a.date || 0);
+                if (dateDiff !== 0) return dateDiff;
+                return (b.km || 0) - (a.km || 0);
+            });
+
+            // Totalizações
+            const totalMaintCost = sortedHist.reduce((acc, h) => acc + (parseFloat(h.value) || 0), 0);
+            const totalMaintCount = sortedHist.length;
+
+            const totalFuelCost = fuelings.reduce((acc, f) => acc + (parseFloat(f.total_price) || 0), 0);
+            const totalFuelLiters = fuelings.reduce((acc, f) => acc + (parseFloat(f.liters) || 0), 0);
+            const fullFuelings = fuelings.filter(f => f.avg_consumption && Number(f.avg_consumption) > 0);
+            const avgKmL = fullFuelings.length > 0 
+                ? (fullFuelings.reduce((acc, f) => acc + Number(f.avg_consumption), 0) / fullFuelings.length).toFixed(1)
+                : '-';
+
+            // Saúde dos componentes
+            const okComps = comps.filter(c => calculateWear(c) < 75).length;
+            const healthPct = comps.length > 0 ? Math.round((okComps / comps.length) * 100) : 100;
+
+            const todayBR = formatDateBR(new Date().toISOString().split('T')[0]);
+            const printTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            container.innerHTML = `
+                <!-- Cabeçalho do Dossiê -->
+                <div class="border-b-2 border-slate-700 pb-5 mb-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-blue-600 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-wider">Livreto de Bordo Oficial</span>
+                                <span class="text-[11px] text-slate-400 font-mono">ID: ${currentVehicle.toUpperCase()}-${new Date().getFullYear()}</span>
+                            </div>
+                            <h1 class="text-2xl font-black text-white mt-1">${cfg.title}</h1>
+                            <p class="text-xs text-slate-300">${cfg.specLabel} &bull; Modelo FIPE: ${cfg.fipe ? cfg.fipe.modelDesc : '-'}</p>
+                        </div>
+                        <div class="text-left sm:text-right border-l-2 sm:border-l-0 sm:border-r-0 border-slate-700 pl-3 sm:pl-0">
+                            <div class="text-xs text-slate-400">Odômetro Atual</div>
+                            <div class="text-xl font-black font-mono text-emerald-400">${currentKm.toLocaleString('pt-BR')} km</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Emissão: ${todayBR} às ${printTime}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumo Executivo / Métricas Rápidas -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <div class="dossier-card bg-slate-800/70 p-3 rounded-xl border border-slate-700">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Total em Manutenções</div>
+                        <div class="text-base font-bold text-white mt-0.5">R$ ${totalMaintCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div class="text-[10px] text-slate-400">${totalMaintCount} intervenções registradas</div>
+                    </div>
+                    <div class="dossier-card bg-slate-800/70 p-3 rounded-xl border border-slate-700">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Saúde dos Componentes</div>
+                        <div class="text-base font-bold text-emerald-400 mt-0.5">${healthPct}% em dia</div>
+                        <div class="text-[10px] text-slate-400">${okComps} de ${comps.length} itens revisados</div>
+                    </div>
+                    <div class="dossier-card bg-slate-800/70 p-3 rounded-xl border border-slate-700">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Média de Consumo</div>
+                        <div class="text-base font-bold text-blue-400 mt-0.5">${avgKmL} km/l</div>
+                        <div class="text-[10px] text-slate-400">${fuelings.length} abastecimentos computados</div>
+                    </div>
+                    <div class="dossier-card bg-slate-800/70 p-3 rounded-xl border border-slate-700">
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold">Cotação FIPE Ref.</div>
+                        <div class="text-base font-bold text-amber-300 mt-0.5">${cfg.fipe ? cfg.fipe.defaultPrice : '-'}</div>
+                        <div class="text-[10px] text-slate-400">${cfg.fipe ? cfg.fipe.defaultRef : '-'}</div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Monitoramento de Vida Útil dos Componentes -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-gauge-high text-blue-400"></i>
+                            Quadro Atual de Vida Útil dos Componentes
+                        </h2>
+                        <span class="text-[10px] text-slate-400">Metas preventivas recomendadas</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-800 text-slate-300 border-b border-slate-700 text-[10px] uppercase font-semibold">
+                                <tr>
+                                    <th class="p-2.5">Componente</th>
+                                    <th class="p-2.5">Última Troca</th>
+                                    <th class="p-2.5">Intervalo Máx.</th>
+                                    <th class="p-2.5">Uso Atual</th>
+                                    <th class="p-2.5">Próxima Troca Prevista</th>
+                                    <th class="p-2.5 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 text-[11px]">
+                                ${comps.map(c => {
+                                    const wear = calculateWear(c);
+                                    const kmDriven = Math.max(0, currentKm - c.lastKm);
+                                    const months = getElapsedMonths(c.lastDate);
+                                    const nextKm = c.lastKm + c.maxKm;
+                                    let statusLabel = "EM DIA";
+                                    let statusBadge = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                                    if (wear >= 95) {
+                                        statusLabel = "VENCIDO";
+                                        statusBadge = "bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold";
+                                    } else if (wear >= 75) {
+                                        statusLabel = "ATENÇÃO";
+                                        statusBadge = "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                                    }
+                                    return `
+                                        <tr class="hover:bg-slate-800/50">
+                                            <td class="p-2.5 font-medium text-white">${c.name}</td>
+                                            <td class="p-2.5 font-mono text-slate-300">${c.lastKm.toLocaleString('pt-BR')} km <span class="text-slate-400 text-[10px]">(${formatDateBR(c.lastDate)})</span></td>
+                                            <td class="p-2.5 font-mono text-slate-400">${c.maxKm.toLocaleString('pt-BR')} km / ${c.maxMonths}m</td>
+                                            <td class="p-2.5 font-mono text-slate-300">${kmDriven.toLocaleString('pt-BR')} km (${months}m)</td>
+                                            <td class="p-2.5 font-mono font-semibold text-blue-300">${nextKm.toLocaleString('pt-BR')} km</td>
+                                            <td class="p-2.5 text-center">
+                                                <span class="px-2 py-0.5 rounded text-[9px] ${statusBadge}">${statusLabel}</span>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Histórico Completo de Manutenções (Livreto) -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-wrench text-amber-400"></i>
+                            Histórico Completo de Manutenções e Revisões (${sortedHist.length} registros)
+                        </h2>
+                        <span class="text-[10px] text-slate-400">Ordem cronológica</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-800 text-slate-300 border-b border-slate-700 text-[10px] uppercase font-semibold">
+                                <tr>
+                                    <th class="p-2.5">Data</th>
+                                    <th class="p-2.5">KM</th>
+                                    <th class="p-2.5">Categoria</th>
+                                    <th class="p-2.5">Descrição do Serviço / Peças</th>
+                                    <th class="p-2.5">Local / Oficina</th>
+                                    <th class="p-2.5 text-right">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 text-[11px]">
+                                ${sortedHist.length === 0 ? `
+                                    <tr><td colspan="6" class="p-4 text-center text-slate-500">Nenhum registro de manutenção encontrado.</td></tr>
+                                ` : sortedHist.map(h => `
+                                    <tr class="hover:bg-slate-800/50">
+                                        <td class="p-2.5 font-mono whitespace-nowrap text-slate-300">${formatDateBR(h.date)}</td>
+                                        <td class="p-2.5 font-mono whitespace-nowrap font-medium text-white">${h.km ? Number(h.km).toLocaleString('pt-BR') + ' km' : '-'}</td>
+                                        <td class="p-2.5 whitespace-nowrap">
+                                            <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">${h.category || 'Geral'}</span>
+                                        </td>
+                                        <td class="p-2.5 font-medium text-white max-w-xs break-words">${h.service || '-'}</td>
+                                        <td class="p-2.5 text-slate-400 whitespace-nowrap">${h.location || '-'}</td>
+                                        <td class="p-2.5 font-mono font-bold text-right text-emerald-400 whitespace-nowrap">R$ ${(parseFloat(h.value) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot class="bg-slate-800 font-bold border-t-2 border-slate-700 text-white text-xs">
+                                <tr>
+                                    <td colspan="5" class="p-2.5 text-right uppercase tracking-wider text-slate-400">Total Investido em Manutenções:</td>
+                                    <td class="p-2.5 text-right font-mono text-emerald-400 text-sm">R$ ${totalMaintCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Resumo dos Abastecimentos -->
+                <div class="mb-6">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-gas-pump text-emerald-400"></i>
+                        Resumo de Eficiência Energética e Abastecimentos
+                    </h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="dossier-card bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                            <span class="text-[10px] text-slate-400 uppercase">Total de Abastecimentos</span>
+                            <div class="text-sm font-bold text-white mt-0.5">${fuelings.length} registros</div>
+                        </div>
+                        <div class="dossier-card bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                            <span class="text-[10px] text-slate-400 uppercase">Volume Total Injetado</span>
+                            <div class="text-sm font-bold text-white mt-0.5">${totalFuelLiters.toFixed(1)} Litros</div>
+                        </div>
+                        <div class="dossier-card bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                            <span class="text-[10px] text-slate-400 uppercase">Investimento em Combustível</span>
+                            <div class="text-sm font-bold text-emerald-400 mt-0.5">R$ ${totalFuelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        </div>
+                        <div class="dossier-card bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                            <span class="text-[10px] text-slate-400 uppercase">Consumo Médio Apurado</span>
+                            <div class="text-sm font-bold text-blue-400 mt-0.5">${avgKmL} km/l</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Declaração de Autenticidade e Rodapé -->
+                <div class="border-t border-slate-700 pt-4 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-400 gap-2">
+                    <div>
+                        <p class="font-medium text-slate-300">Dossiê Veicular Gerado via Sistema Garage - Gestão e Valorização de Veículos</p>
+                        <p>Documento para comprovação histórica de revisões preventivas, corretivas e integridade mecânica.</p>
+                    </div>
+                    <div class="text-right font-mono">
+                        <span>Página 1 de 1 &bull; ${new Date().getFullYear()}</span>
+                    </div>
+                </div>
+            `;
         }
 
         // Gráfico de Custos por Categoria
@@ -3353,6 +3907,8 @@
                 closeFuelModal();
                 closeIpvaModal();
                 closeBackupsModal();
+                closeComponentLimitsModal();
+                closeDossierModal();
                 closeSettingsMenu();
             }
         });
