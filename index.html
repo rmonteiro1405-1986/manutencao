@@ -118,7 +118,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 id="vehicleTitle" class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                            VW Voyage 1.6 Highline
+                            Voyage 1.6
                         </h1>
                         <span id="vehicleBadge" class="text-xs bg-slate-700 text-blue-400 px-2 py-0.5 rounded font-mono">EA111 8V</span>
                     </div>
@@ -753,7 +753,7 @@
                     <h3 class="text-base font-bold text-white">
                         Estimativa IPVA & GRT • Rio de Janeiro
                     </h3>
-                    <p class="text-xs text-slate-400">Exercício Fiscal: <b class="text-purple-300" id="modalIpvaYear">2027</b> • <span id="modalIpvaVehicleName" class="text-slate-300 font-medium">VW Voyage</span></p>
+                    <p class="text-xs text-slate-400">Exercício Fiscal: <b class="text-purple-300" id="modalIpvaYear">2027</b> • <span id="modalIpvaVehicleName" class="text-slate-300 font-medium">Voyage 1.6</span></p>
                 </div>
             </div>
 
@@ -1054,7 +1054,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_18_build20_dossier_and_custom_limits";
+        const APP_BUILD_ID = "v2026_11_18_build21_titles_and_silent_sync";
         localStorage.setItem('app_build_version', APP_BUILD_ID);
 
         // Variáveis de Estado
@@ -1094,7 +1094,7 @@
         // Configurações e especificações por veículo
         const vehicleConfigs = {
             Voyage: {
-                title: "VW Voyage 1.6 Highline",
+                title: "Voyage 1.6",
                 badge: "EA111 8V",
                 icon: "fa-car",
                 defaultKm: 104450,
@@ -1122,8 +1122,8 @@
                 ]
             },
             Crosser: {
-                title: "Yamaha XTZ 150 Crosser",
-                badge: "150cc BlueFlex",
+                title: "Crosser 150",
+                badge: "BlueFlex",
                 icon: "fa-motorcycle",
                 defaultKm: 74644,
                 specLabel: "Motor 150cc SOHC - Motul 5000+ 10W-40",
@@ -1680,7 +1680,7 @@
                     </li>
                 `;
             } else {
-                tipsTitle.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400"></i> Segredos de Durabilidade da Yamaha Crosser';
+                tipsTitle.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400"></i> Segredos de Durabilidade da Crosser 150';
                 tipsSub.innerText = 'Diretrizes essenciais para o motor BlueFlex 150cc';
                 tipsList.innerHTML = `
                     <li class="flex items-start gap-2 bg-slate-900/50 p-2 rounded border border-slate-800">
@@ -3726,8 +3726,9 @@
             const vehicleToSync = currentVehicle;
             const syncDot = document.getElementById('syncDot');
             const syncText = document.getElementById('syncText');
-            if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-            if (syncText) syncText.innerText = "Sincronizando...";
+            // Sincronização silenciosa em segundo plano: mantém "Conectado" fixo sem piscar "Sincronizando..."
+            if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+            if (syncText) syncText.innerText = "Conectado";
             if (showToastMsg) showToast(`Carregando ${vehicleToSync} do Supabase...`);
 
             if (!sbClient) {
