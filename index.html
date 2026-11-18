@@ -91,7 +91,7 @@
                 </button>
                 <button onclick="openSyncModal()" id="btnSyncStatus" title="Status da sincronização com Supabase" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition text-slate-300">
                     <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="syncText">Supabase Conectado</span>
+                    <span id="syncText">Conectado</span>
                 </button>
 
                 <!-- Menu de Configurações / Ações de Dados (Engrenagem) -->
@@ -99,28 +99,33 @@
                     <button onclick="toggleSettingsMenu(event)" id="btnSettingsMenu" title="Opções do Sistema e Dados" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 p-2 rounded-lg transition text-slate-300 hover:text-white flex items-center justify-center shadow-sm">
                         <i class="fa-solid fa-gear text-sm"></i>
                     </button>
-                    <div id="settingsMenu" class="hidden absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs divide-y divide-slate-800">
+                    <div id="settingsMenu" class="hidden absolute right-0 mt-2 w-60 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs divide-y divide-slate-800">
                         <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                            <i class="fa-solid fa-sliders text-blue-400"></i> Gerenciamento de Dados
+                            <i class="fa-solid fa-sliders text-blue-400"></i> Opções do Sistema
                         </div>
                         <div class="py-1">
                             <button onclick="syncWithCloud(true); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2.5 transition">
                                 <i class="fa-solid fa-arrows-rotate text-blue-400 w-4 text-center"></i>
-                                <span>Recarregar Dados</span>
+                                <div>
+                                    <div class="font-medium text-white">Sincronizar Dados</div>
+                                    <div class="text-[10px] text-slate-400">Atualiza com o banco na nuvem</div>
+                                </div>
                             </button>
-                            <button onclick="forcarReset(); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-amber-400 hover:bg-slate-800 flex items-center gap-2.5 transition">
-                                <i class="fa-solid fa-rotate text-amber-400 w-4 text-center"></i>
-                                <span>Repor Dados</span>
+                            <button onclick="openBackupsModal(); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2.5 transition">
+                                <i class="fa-solid fa-shield-halved text-emerald-400 w-4 text-center"></i>
+                                <div>
+                                    <div class="font-medium text-white">Central de Backups</div>
+                                    <div class="text-[10px] text-slate-400">Rotina semanal automática &amp; JSON</div>
+                                </div>
                             </button>
                         </div>
                         <div class="py-1">
-                            <button onclick="exportBackup(); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2.5 transition">
-                                <i class="fa-solid fa-download text-emerald-400 w-4 text-center"></i>
-                                <span>Backup</span>
-                            </button>
-                            <button onclick="document.getElementById('importFileInput').click(); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2.5 transition">
-                                <i class="fa-solid fa-upload text-purple-400 w-4 text-center"></i>
-                                <span>Importar</span>
+                            <button onclick="forcarReset(); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-rose-400 hover:bg-slate-800 flex items-center gap-2.5 transition">
+                                <i class="fa-solid fa-trash-can text-rose-400 w-4 text-center"></i>
+                                <div>
+                                    <div class="font-medium">Limpar Cache Local</div>
+                                    <div class="text-[10px] text-slate-400">Reseta cache do navegador e recarrega</div>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -141,7 +146,7 @@
                         <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                             <i class="fa-solid fa-gauge text-blue-400"></i> Odômetro Atual
                         </span>
-                        <button onclick="saveOdometerToCloud(currentKm, true)" title="Enviar este KM imediatamente para a planilha" class="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-700 transition shadow-sm">
+                        <button onclick="saveOdometerToCloud(currentKm, true)" title="Salvar este KM imediatamente no banco de dados" class="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-700 transition shadow-sm">
                             <i class="fa-solid fa-cloud-arrow-up"></i> Salvar KM
                         </button>
                     </div>
@@ -470,7 +475,7 @@
                     </ul>
                 </div>
                 <div class="text-[11px] text-slate-500 pt-3 border-t border-slate-800 text-right">
-                    Conectado à aba correspondente da sua folha Google Sheets.
+                    Sincronizado em tempo real com o banco de dados PostgreSQL (Supabase).
                 </div>
             </div>
         </section>
@@ -813,6 +818,73 @@
         </div>
     </div>
 
+    <!-- Modal: Central de Backups & Segurança -->
+    <div id="modalBackups" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeBackupsModal()">
+        <div class="bg-darkcard border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeBackupsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">Central de Backups &amp; Segurança</h3>
+                    <p class="text-xs text-slate-400">Proteção e histórico de dados dos seus veículos (Voyage &amp; Crosser)</p>
+                </div>
+            </div>
+
+            <!-- Status da Rotina Automática -->
+            <div class="bg-slate-900/80 rounded-xl p-3.5 border border-slate-800 my-4 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 font-medium">Rotina Automática:</span>
+                    <span class="text-emerald-400 font-bold flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Ativa (Semanal • A cada 7 dias)
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 font-medium">Último Backup Automático:</span>
+                    <span class="text-slate-200 font-mono" id="autoBackupLastDate">Calculando...</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 font-medium">Próximo Backup Previsto:</span>
+                    <span class="text-slate-200 font-mono" id="autoBackupNextDate">-</span>
+                </div>
+            </div>
+
+            <!-- Lista de Backups Automáticos Semanais Salvos -->
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Histórico de Cópias Automáticas
+                    </h4>
+                    <span class="text-[10px] text-slate-500">Últimas 4 semanas</span>
+                </div>
+                <div class="space-y-2" id="autoBackupsList">
+                    <!-- Preenchido dinamicamente via JS -->
+                </div>
+            </div>
+
+            <!-- Ações Manuais de Backup -->
+            <div class="border-t border-slate-800 pt-3.5 space-y-2">
+                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Ações Manuais</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button onclick="exportBackup();" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-200 p-2.5 rounded-xl flex items-center justify-center gap-2 transition font-medium">
+                        <i class="fa-solid fa-download text-emerald-400"></i> Baixar Arquivo JSON Agora
+                    </button>
+                    <button onclick="document.getElementById('importFileInput').click(); closeBackupsModal();" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-200 p-2.5 rounded-xl flex items-center justify-center gap-2 transition font-medium">
+                        <i class="fa-solid fa-upload text-purple-400"></i> Restaurar Arquivo do PC
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+                <button type="button" onclick="closeBackupsModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-blue-500 text-white px-4 py-3 rounded-lg shadow-xl hidden transition transform duration-300 z-50 text-xs flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-blue-400" id="toastIcon"></i>
@@ -821,16 +893,8 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_17_build16_ux_upgrade";
-        if (localStorage.getItem('app_build_version') !== APP_BUILD_ID) {
-            localStorage.removeItem('voyage_history');
-            localStorage.removeItem('crosser_history');
-            localStorage.removeItem('voyage_km');
-            localStorage.removeItem('crosser_km');
-            localStorage.removeItem('voyage_fuelings');
-            localStorage.removeItem('crosser_fuelings');
-            localStorage.setItem('app_build_version', APP_BUILD_ID);
-        }
+        const APP_BUILD_ID = "v2026_11_18_build17_autobackup";
+        localStorage.setItem('app_build_version', APP_BUILD_ID);
 
         // Variáveis de Estado
         let currentVehicle = localStorage.getItem('active_vehicle') || 'Voyage';
@@ -1892,7 +1956,7 @@
                         if (error) throw error;
                     }
                     if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                    if (syncText) syncText.innerText = "Supabase Conectado";
+                    if (syncText) syncText.innerText = "Conectado";
                     showToast(`KM ${currentVehicle} salvo: ${km.toLocaleString('pt-BR')} km`);
                 } catch (err) {
                     console.error("Erro ao salvar odômetro no Supabase:", err);
@@ -2259,7 +2323,7 @@
 
                     sbClient.from('manutencoes').delete().eq('id', item.id).then(({ error }) => {
                         if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                        if (syncText) syncText.innerText = "Supabase Conectado";
+                        if (syncText) syncText.innerText = "Conectado";
                         if (error) {
                             console.error("Erro ao excluir do Supabase:", error);
                             showToast("Aviso: Falha ao excluir do banco de dados.");
@@ -2289,12 +2353,17 @@
             }
         }
 
-        // Exportação e Importação de Backup
-        function exportBackup() {
-            const backup = {
+        // ==========================================
+        // ROTINA DE BACKUP SEMANAL AUTOMÁTICA & SEGURANÇA
+        // ==========================================
+        const AUTO_BACKUP_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
+
+        function generateBackupPayload() {
+            return {
+                version: "2.0",
                 activeVehicle: currentVehicle,
-                voyageKm: localStorage.getItem('voyage_km'),
-                crosserKm: localStorage.getItem('crosser_km'),
+                voyageKm: localStorage.getItem('voyage_km') || vehicleConfigs.Voyage.defaultKm,
+                crosserKm: localStorage.getItem('crosser_km') || vehicleConfigs.Crosser.defaultKm,
                 voyageHistory: localStorage.getItem('voyage_history') ? JSON.parse(localStorage.getItem('voyage_history')) : [],
                 crosserHistory: localStorage.getItem('crosser_history') ? JSON.parse(localStorage.getItem('crosser_history')) : [],
                 voyageSchedule: localStorage.getItem('voyage_schedule') ? JSON.parse(localStorage.getItem('voyage_schedule')) : [],
@@ -2303,6 +2372,177 @@
                 crosserFuelings: localStorage.getItem('crosser_fuelings') ? JSON.parse(localStorage.getItem('crosser_fuelings')) : [],
                 exportDate: new Date().toISOString()
             };
+        }
+
+        // Executado periodicamente ao carregar o aplicativo
+        function checkAndRunWeeklyBackup() {
+            try {
+                const now = Date.now();
+                const lastTimeRaw = localStorage.getItem('garage_last_weekly_backup_time');
+                const lastTime = lastTimeRaw ? parseInt(lastTimeRaw, 10) : 0;
+
+                // Executa se já passou 7 dias ou se for a primeira vez com dados disponíveis
+                if (!lastTime || (now - lastTime) >= AUTO_BACKUP_INTERVAL_MS) {
+                    const payload = generateBackupPayload();
+                    const totalRecords = payload.voyageHistory.length + payload.crosserHistory.length;
+
+                    if (totalRecords > 0) {
+                        let backups = [];
+                        try {
+                            backups = JSON.parse(localStorage.getItem('garage_weekly_backups') || '[]');
+                            if (!Array.isArray(backups)) backups = [];
+                        } catch (e) { backups = []; }
+
+                        const newSnapshot = {
+                            id: 'auto_backup_' + now,
+                            timestamp: now,
+                            dateStr: new Date().toISOString(),
+                            voyageCount: payload.voyageHistory.length,
+                            crosserCount: payload.crosserHistory.length,
+                            data: payload
+                        };
+
+                        // Adiciona no início e mantém os últimos 4 snapshots (1 mês de histórico)
+                        backups.unshift(newSnapshot);
+                        if (backups.length > 4) backups = backups.slice(0, 4);
+
+                        localStorage.setItem('garage_weekly_backups', JSON.stringify(backups));
+                        localStorage.setItem('garage_last_weekly_backup_time', String(now));
+                        console.log("Rotina de backup semanal automático concluída com sucesso.");
+                    }
+                }
+            } catch (err) {
+                console.warn("Aviso na rotina de backup semanal:", err);
+            }
+        }
+
+        function openBackupsModal() {
+            checkAndRunWeeklyBackup();
+            const modal = document.getElementById('modalBackups');
+            if (!modal) return;
+
+            const lastTimeRaw = localStorage.getItem('garage_last_weekly_backup_time');
+            const lastDateEl = document.getElementById('autoBackupLastDate');
+            const nextDateEl = document.getElementById('autoBackupNextDate');
+            const listEl = document.getElementById('autoBackupsList');
+
+            if (lastTimeRaw) {
+                const lastTime = parseInt(lastTimeRaw, 10);
+                const d = new Date(lastTime);
+                if (lastDateEl) lastDateEl.innerText = `${formatDateBR(d.toISOString().split('T')[0])} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                const nextD = new Date(lastTime + AUTO_BACKUP_INTERVAL_MS);
+                if (nextDateEl) nextDateEl.innerText = `${formatDateBR(nextD.toISOString().split('T')[0])} às ${nextD.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            } else {
+                if (lastDateEl) lastDateEl.innerText = "Hoje (Primeiro ciclo ativo)";
+                if (nextDateEl) nextDateEl.innerText = "Em 7 dias";
+            }
+
+            let backups = [];
+            try {
+                backups = JSON.parse(localStorage.getItem('garage_weekly_backups') || '[]');
+            } catch(e) { backups = []; }
+
+            if (listEl) {
+                if (!backups || backups.length === 0) {
+                    listEl.innerHTML = `<div class="p-3 text-center text-slate-500 bg-slate-900/50 rounded-lg text-xs">Nenhum backup semanal anterior registrado ainda.</div>`;
+                } else {
+                    listEl.innerHTML = '';
+                    backups.forEach((b, idx) => {
+                        const d = new Date(b.timestamp);
+                        const dateFormatted = `${formatDateBR(d.toISOString().split('T')[0])} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                        listEl.innerHTML += `
+                            <div class="flex items-center justify-between p-2.5 bg-slate-900/70 border border-slate-800 rounded-lg hover:border-slate-700 transition">
+                                <div>
+                                    <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+                                        <i class="fa-solid fa-calendar-week text-emerald-400 text-[10px]"></i>
+                                        <span>Semana ${idx + 1} (${dateFormatted})</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">
+                                        Voyage: ${b.voyageCount || 0} reg | Crosser: ${b.crosserCount || 0} reg
+                                    </div>
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <button onclick="downloadAutoBackup('${b.id}')" title="Baixar arquivo JSON desta cópia" class="text-xs bg-slate-800 hover:bg-slate-700 text-blue-400 px-2 py-1 rounded border border-slate-700 transition flex items-center gap-1">
+                                        <i class="fa-solid fa-download"></i> Baixar
+                                    </button>
+                                    <button onclick="restoreAutoBackup('${b.id}')" title="Restaurar dados desta semana" class="text-xs bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 px-2 py-1 rounded transition flex items-center gap-1">
+                                        <i class="fa-solid fa-rotate-left"></i> Restaurar
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeBackupsModal() {
+            const modal = document.getElementById('modalBackups');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function downloadAutoBackup(id) {
+            try {
+                const backups = JSON.parse(localStorage.getItem('garage_weekly_backups') || '[]');
+                const found = backups.find(b => b.id === id);
+                if (found && found.data) {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(found.data, null, 2));
+                    const dlAnchor = document.createElement('a');
+                    dlAnchor.setAttribute("href", dataStr);
+                    dlAnchor.setAttribute("download", `garagem_auto_backup_${new Date(found.timestamp).toISOString().split('T')[0]}.json`);
+                    dlAnchor.click();
+                    showToast("Download da cópia semanal iniciado!");
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function restoreAutoBackup(id) {
+            try {
+                const backups = JSON.parse(localStorage.getItem('garage_weekly_backups') || '[]');
+                const found = backups.find(b => b.id === id);
+                if (!found || !found.data) return;
+
+                if (confirm(`Deseja restaurar o backup automático de ${new Date(found.timestamp).toLocaleDateString('pt-BR')}?\nOs registros locais e na nuvem serão atualizados.`)) {
+                    await applyBackupData(found.data);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // Aplicação segura de dados de backup
+        async function applyBackupData(data) {
+            if (data.voyageKm) localStorage.setItem('voyage_km', data.voyageKm);
+            if (data.crosserKm) localStorage.setItem('crosser_km', data.crosserKm);
+            if (data.voyageHistory) localStorage.setItem('voyage_history', JSON.stringify(data.voyageHistory));
+            if (data.crosserHistory) localStorage.setItem('crosser_history', JSON.stringify(data.crosserHistory));
+            if (data.voyageSchedule) localStorage.setItem('voyage_schedule', JSON.stringify(data.voyageSchedule));
+            if (data.crosserSchedule) localStorage.setItem('crosser_schedule', JSON.stringify(data.crosserSchedule));
+            if (data.voyageFuelings) localStorage.setItem('voyage_fuelings', JSON.stringify(data.voyageFuelings));
+            if (data.crosserFuelings) localStorage.setItem('crosser_fuelings', JSON.stringify(data.crosserFuelings));
+            if (data.activeVehicle) localStorage.setItem('active_vehicle', data.activeVehicle);
+
+            if (sbClient) {
+                showToast("Sincronizando odômetros no banco de dados...");
+                try {
+                    if (data.voyageKm) await sbClient.from('veiculos').update({ odometro: Number(data.voyageKm), updated_at: new Date().toISOString() }).eq('id', 'voyage');
+                    if (data.crosserKm) await sbClient.from('veiculos').update({ odometro: Number(data.crosserKm), updated_at: new Date().toISOString() }).eq('id', 'crosser');
+                } catch(e) {
+                    console.warn("Aviso ao atualizar odômetros no banco:", e);
+                }
+            }
+
+            showToast("Backup restaurado com sucesso!");
+            setTimeout(() => window.location.reload(), 600);
+        }
+
+        // Exportação Manual de Backup
+        function exportBackup() {
+            const backup = generateBackupPayload();
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
@@ -2315,26 +2555,15 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
                     if (!data.voyageHistory && !data.crosserHistory && !data.voyageFuelings && !data.crosserFuelings) {
                         alert("Arquivo de backup inválido.");
                         return;
                     }
-                    if (confirm("Deseja restaurar este backup? Os dados locais serão substituídos pelos registros do arquivo.")) {
-                        if (data.voyageKm) localStorage.setItem('voyage_km', data.voyageKm);
-                        if (data.crosserKm) localStorage.setItem('crosser_km', data.crosserKm);
-                        if (data.voyageHistory) localStorage.setItem('voyage_history', JSON.stringify(data.voyageHistory));
-                        if (data.crosserHistory) localStorage.setItem('crosser_history', JSON.stringify(data.crosserHistory));
-                        if (data.voyageSchedule) localStorage.setItem('voyage_schedule', JSON.stringify(data.voyageSchedule));
-                        if (data.crosserSchedule) localStorage.setItem('crosser_schedule', JSON.stringify(data.crosserSchedule));
-                        if (data.voyageFuelings) localStorage.setItem('voyage_fuelings', JSON.stringify(data.voyageFuelings));
-                        if (data.crosserFuelings) localStorage.setItem('crosser_fuelings', JSON.stringify(data.crosserFuelings));
-                        if (data.activeVehicle) localStorage.setItem('active_vehicle', data.activeVehicle);
-
-                        showToast("Backup restaurado com sucesso!");
-                        setTimeout(() => window.location.reload(), 500);
+                    if (confirm("Deseja restaurar este backup? Os registros serão substituídos pelos do arquivo.")) {
+                        await applyBackupData(data);
                     }
                 } catch (err) {
                     console.error(err);
@@ -2831,7 +3060,7 @@
                     posto: newFuel.posto
                 }).then(({ error }) => {
                     if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                    if (syncText) syncText.innerText = "Supabase Conectado";
+                    if (syncText) syncText.innerText = "Conectado";
                     if (error) console.error("Erro ao gravar abastecimento no Supabase:", error);
                 });
             }
@@ -2993,7 +3222,7 @@
                 updateChart();
 
                 if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                if (syncText) syncText.innerText = "Supabase Conectado";
+                if (syncText) syncText.innerText = "Conectado";
                 if (showToastMsg) showToast(`${currentVehicle} sincronizado via Supabase!`);
             } catch (err) {
                 console.error("Falha ao sincronizar com Supabase:", err);
@@ -3057,6 +3286,7 @@
                 closeSyncModal();
                 closeFuelModal();
                 closeIpvaModal();
+                closeBackupsModal();
                 closeSettingsMenu();
             }
         });
@@ -3064,6 +3294,7 @@
         // Inicialização
         switchVehicle(currentVehicle);
         setupRealtime();
+        checkAndRunWeeklyBackup();
     </script>
 </body>
 </html>
