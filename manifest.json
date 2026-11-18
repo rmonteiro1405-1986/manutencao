@@ -1,7 +1,7 @@
 {
-  "name": "AutoGestão - Garagem Unificada",
-  "short_name": "AutoGestão",
-  "description": "Painel de gestão e manutenção preventiva unificada para VW Voyage e Yamaha Crosser",
+  "name": "Garagem RM",
+  "short_name": "Garagem RM",
+  "description": "Painel de gestão e manutenção preventiva para Voyage 1.6 e Crosser 150",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait-primary",

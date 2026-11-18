@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoGestão - Garagem Unificada</title>
+    <title>Garagem RM</title>
     
     <!-- Favicon & Mobile Shortcut Icons -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -18,7 +18,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="AutoGestão">
+    <meta name="apple-mobile-web-app-title" content="Garagem RM">
 
     <!-- Anti-Cache for Mobile & Instant Cloud Sync -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -153,7 +153,7 @@
                     </button>
                     <div id="settingsMenu" class="hidden absolute right-0 mt-2 w-60 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs divide-y divide-slate-800">
                         <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                            <i class="fa-solid fa-sliders text-blue-400"></i> Opções do Sistema
+                            <i class="fa-solid fa-warehouse text-blue-400"></i> Garagem RM • Opções
                         </div>
                         <div class="py-1">
                             <button onclick="syncWithCloud(true); closeSettingsMenu();" class="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2.5 transition">
@@ -258,9 +258,8 @@
                 </div>
                 <div class="mt-1">
                     <div class="text-2xl font-extrabold text-purple-400" id="ipvaTotalCard">Carregando...</div>
-                    <div class="text-xs text-slate-300 mt-0.5 flex items-center gap-1.5 flex-wrap" id="ipvaAliqSubtitle">
-                        <span class="bg-purple-950/90 text-purple-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-purple-800" id="ipvaAliqBadge">RJ 1,5% (GNV)</span>
-                        <span class="truncate text-[11px] text-slate-300" id="ipvaBreakdownSub">IPVA + GRT</span>
+                    <div class="text-xs text-slate-300 mt-1 flex items-center gap-1.5 flex-wrap" id="ipvaAliqSubtitle">
+                        <span class="truncate text-[11px] text-slate-300 font-medium" id="ipvaBreakdownSub">IPVA + GRT</span>
                     </div>
                 </div>
                 <div class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
@@ -1054,7 +1053,7 @@
 
     <script>
         // Versão da aplicação
-        const APP_BUILD_ID = "v2026_11_18_build21_titles_and_silent_sync";
+        const APP_BUILD_ID = "v2026_11_18_build22_garagem_rm";
         localStorage.setItem('app_build_version', APP_BUILD_ID);
 
         // Variáveis de Estado
@@ -2100,20 +2099,11 @@
 
             const yearBadge = document.getElementById('ipvaYearBadge');
             const totalCard = document.getElementById('ipvaTotalCard');
-            const aliqBadge = document.getElementById('ipvaAliqBadge');
             const breakdownSub = document.getElementById('ipvaBreakdownSub');
             const avistaBadge = document.getElementById('ipvaAvistaBadge');
 
             if (yearBadge) yearBadge.innerText = calc.targetYear;
             if (totalCard) totalCard.innerText = formatBrlCurrency(calc.totalIntegral);
-            if (aliqBadge) {
-                aliqBadge.innerText = `RJ ${calc.aliquotaLabel}`;
-                aliqBadge.className = calc.hasGnv 
-                    ? "bg-purple-950/90 text-purple-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-purple-800"
-                    : (currentVehicle === 'Crosser' 
-                        ? "bg-amber-950/90 text-amber-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-amber-800"
-                        : "bg-blue-950/90 text-blue-300 px-1.5 py-0.2 rounded text-[10px] font-medium border border-blue-800");
-            }
             if (breakdownSub) {
                 breakdownSub.innerText = `IPVA: ${formatBrlCurrency(calc.valorIpvaIntegral)} | GRT: R$ 293,71`;
             }
@@ -3016,7 +3006,7 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="bg-blue-600 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-wider">Livreto de Bordo Oficial</span>
+                                <span class="bg-blue-600 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-wider">Garagem RM • Livreto de Bordo</span>
                                 <span class="text-[11px] text-slate-400 font-mono">ID: ${currentVehicle.toUpperCase()}-${new Date().getFullYear()}</span>
                             </div>
                             <h1 class="text-2xl font-black text-white mt-1">${cfg.title}</h1>
@@ -3184,7 +3174,7 @@
                 <!-- Declaração de Autenticidade e Rodapé -->
                 <div class="border-t border-slate-700 pt-4 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-400 gap-2">
                     <div>
-                        <p class="font-medium text-slate-300">Dossiê Veicular Gerado via Sistema Garage - Gestão e Valorização de Veículos</p>
+                        <p class="font-medium text-slate-300">Dossiê Veicular Gerado via Garagem RM - Gestão e Valorização de Veículos</p>
                         <p>Documento para comprovação histórica de revisões preventivas, corretivas e integridade mecânica.</p>
                     </div>
                     <div class="text-right font-mono">
