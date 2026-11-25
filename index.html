@@ -351,9 +351,8 @@
                         </div>
                         <div>
                             <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Histórico de Investimentos</div>
-                            <div class="flex items-baseline gap-2">
+                            <div>
                                 <span class="text-xl font-black text-emerald-400 font-mono" id="totalHistoryCost">R$ 0,00</span>
-                                <span class="text-xs text-slate-300 font-medium" id="totalHistoryCount">0 serviços registrados</span>
                             </div>
                         </div>
                     </div>
@@ -1776,8 +1775,6 @@
             const displayedTotal = includePurchaseInTotal ? (maintenanceTotal + acquisitionTotal) : maintenanceTotal;
             const costEl = document.getElementById('totalHistoryCost');
             if (costEl) costEl.innerText = `R$ ${displayedTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            const countEl = document.getElementById('totalHistoryCount');
-            if (countEl) countEl.innerText = `${hist.length} serviços registrados`;
             const subEl = document.getElementById('totalHistorySub');
             if (subEl) {
                 subEl.innerHTML = includePurchaseInTotal
